@@ -3,7 +3,7 @@ require PolyHok
 defmodule BMP do
   @on_load :load_nifs
   def load_nifs do
-      :erlang.load_nif('./priv/bmp_nifs', 0)
+      :erlang.load_nif("./priv/bmp_nifs", 0)
   end
   def gen_bmp_int_nif(_string,_dim,_mat) do
       raise "gen_bmp_nif not implemented"
