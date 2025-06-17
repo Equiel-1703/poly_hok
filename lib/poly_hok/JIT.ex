@@ -488,6 +488,221 @@ defp find_function_calls_if(map,[bexp, [do: then]]) do
 
 end
 
+##################### FIND FREE VARIABLES ##############################
+#################################################################
+
+
+def find_free_vars({:fn, _, [{:->, _ , [para,body]}] }) do
+  param_vars = para
+    |>  Enum.map(fn {p, _, _}-> p end)
+    |>  MapSet.new()
+
+  #IO.inspect "body #{inspect body}"
+    {bound,free} = find_free_vars_body({param_vars,MapSet.new()},body)
+    IO.puts "Bound"
+    IO.inspect bound
+    IO.puts "Free"
+    IO.inspect free
+    MapSet.to_list(free)
+end
+
+
+
+def find_free_vars_body(map,body) do
+
+  case body do
+     {:__block__, _, _code} ->
+      find_free_vars_block(map,body)
+     {:do, {:__block__,pos, code}} ->
+      find_free_vars_block(map, {:__block__, pos,code})
+     {:do, exp} ->
+     # IO.inspect "here #{inspect exp}"
+      find_free_vars_command(map,exp)
+     {_,_,_} ->
+      find_free_vars_command(map,body)
+  end
+end
+
+
+defp find_free_vars_block(map,{:__block__, _info, code}) do
+  Enum.reduce(code,map, fn x,acc -> find_free_vars_command(acc,x) end)
+end
+
+
+defp find_free_vars_command(map,code) do
+  #IO.inspect "here2"
+  case code do
+      {:for,i,[param,[body]]} ->
+       find_free_vars_for(map,{:for,i,[param,[body]]})
+      {:do_while, _i, [[doblock]]} ->
+       find_free_vars_body(map,doblock)
+      {:do_while_test, _i, [exp]} ->
+       find_free_vars_exp(map,exp)
+      {:while, _i, [bexp,[body]]} ->
+       map = find_free_vars_exp(map,bexp)
+       find_free_vars_body(map,body)
+      # CRIAÇÃO DE NOVOS VETORES
+      {{:., _i1, [Access, :get]}, _i2, [{var,_,nil},size]} ->
+        {bound,free} = map
+        bound = MapSet.put(bound,var)
+        find_free_vars_exp({bound,free},size)
+      {:__shared__, _i1, [{{:., _i2, [Access, :get]}, _i3, [{var,_,nil},size]}]} ->
+        {bound,free} = map
+        bound = MapSet.put(bound,var)
+        find_free_vars_exp({bound,free},size)
+      # assignment
+      {:=, _i1, [{{:., _i2, [Access, :get]}, _i3, [{array,_i4,_arag}, acc_exp]}, exp]} ->
+        {bound,free} = map
+        if MapSet.member?(bound,array) do
+          map
+           |> find_free_vars_exp(acc_exp)
+           |> find_free_vars_exp(exp)
+        else
+          {bound, MapSet.put(free,array)}
+          |> find_free_vars_exp(acc_exp)
+          |> find_free_vars_exp(exp)
+        end
+      {:=, _i, [{var,_,nil}, exp]} ->
+        {bound,free} = map
+        {MapSet.put(bound,var), free}
+        |> find_free_vars_exp(exp)
+
+      {:if, _i, if_com} ->
+       find_free_vars_if(map,if_com)
+      {:var, _i1 , [{var,_i2,[{:=, _i3, [{_type,_ii,nil}, exp]}]}]} ->
+        {bound,free} = map
+        {MapSet.put(bound,var),free}
+        |> find_free_vars_exp(exp)
+      {:var, _i1 , [{var,_i2,[{:=, _i3, [_type, exp]}]}]} ->
+        {bound,free} = map
+        {MapSet.put(bound,var),free}
+        |> find_free_vars_exp(exp)
+      {:var, _i1 , [{var,_i2,[{_type,_i3,_t}]}]} ->
+        {bound,free} = map
+        {MapSet.put(bound,var),free}
+
+      {:var, _i1 , [{var,_i2,[_type]}]} ->
+        {bound,free} = map
+        {MapSet.put(bound,var),free}
+      {:type, _i1 , [{_var,_i2,[{_type,_i3,_t}]}]} ->
+        map
+      {:type, _i1 , [{_var,_i2,[_type]}]} ->
+        map
+
+      {:return,_i,[arg]} ->
+   #     IO.inspect "Aqui3"
+       find_free_vars_exp(map,arg)
+
+      {_fun, _info, args} when is_list(args)->
+    #    IO.inspect "Aqui3 #{length args} #{inspect fun}"
+         Enum.reduce(args,map, fn x,acc -> find_free_vars_exp(acc,x) end)
+    #raise "funcao: #{inspect fun}"
+     #   {args,funs} = map
+     #   if MapSet.member?(args,fun) do
+     #     map
+     #   else
+     #      {args,MapSet.put(funs,fun)}
+     #   end
+      number when is_integer(number) or is_float(number) -> raise "Error: #{inspect number} is a command"
+      c -> raise "Found unknown command (#{inspect c}) while searching for free vars."
+
+  end
+end
+
+defp find_free_vars_for({bound,free},{:for,_,[header,[body]]}) do
+  case header do
+    {:in, _,[{var,_,nil},{:range,_,[n]}]} ->
+       {bound,free} = {MapSet.put(bound,var),free}
+            |> find_free_vars_exp(n)
+            |> find_free_vars_body(body)
+
+        {MapSet.delete(bound,var),free}
+    {:in, _,[{var,_,nil},{:range,_,[arg1,arg2]}]} ->
+        {bound,free} =  {MapSet.put(bound,var),free}
+            |> find_free_vars_exp(arg1)
+            |> find_free_vars_exp(arg2)
+            |> find_free_vars_body(body)
+
+        {MapSet.delete(bound,var),free}
+    {:in, _,[{var,_,nil},{:range,_,[arg1,arg2,step]}]} ->
+       {bound,free} = {MapSet.put(bound,var),free}
+            |> find_free_vars_exp(arg1)
+            |> find_free_vars_exp(arg2)
+            |> find_free_vars_exp(step)
+            |> find_free_vars_body(body)
+
+    {MapSet.delete(bound,var),free}
+  end
+end
+
+
+defp find_free_vars_if(map,[bexp, [do: then]]) do
+  map
+  |> find_free_vars_exp(bexp)
+  |> find_free_vars_body(then)
+ end
+ defp find_free_vars_if(map,[bexp, [do: thenbranch, else: elsebranch]]) do
+  map
+  |> find_free_vars_exp(bexp)
+  |> find_free_vars_body(thenbranch)
+  |> find_free_vars_body(elsebranch)
+ end
+
+
+ defp find_free_vars_exp(map,exp) do
+  case exp do
+    ## array index
+    {{:., _i1, [Access, :get]}, _i2, [{array,_ia,_},index]} ->
+      {bound,free} = map
+      if MapSet.member?(bound,array) do
+        map
+         |> find_free_vars_exp(index)
+      else
+        {bound, MapSet.put(free,array)}
+        |> find_free_vars_exp(index)
+      end
+      # cuda constant
+    {{:., _i1, [{_struct, _i2, nil}, _field]},_i3,[]} ->
+        map
+        # cuda constant
+    {{:., _i1, [{:__aliases__, _i2, [_struct]}, _field]}, _i3, []} ->
+       map
+    {op,_info, args} when op in [:+, :-, :/, :*] ->
+     # IO.inspect "Aqui"
+      Enum.reduce(args,map, fn x,acc -> find_free_vars_exp(acc,x) end)
+
+    {op, _info, args} when op in [ :<=, :<, :>, :>=, :&&, :||, :!,:!=,:==] ->
+      Enum.reduce(args,map, fn x,acc -> find_free_vars_exp(acc,x) end)
+    {var,_info, nil} when is_atom(var) ->
+      {bound,free} = map
+      if MapSet.member?(bound,var) do
+        map
+      else
+        {bound, MapSet.put(free,var)}
+      end
+    {_fun,_info, args} ->
+      Enum.reduce(args,map, fn x,acc -> find_free_vars_exp(acc,x) end)
+      #IO.inspect "Aqui2"
+     # IO.inspect args
+     # raise "function: #{inspect fun}"
+    # {args,funs} = map
+     #if MapSet.member?(args,fun) do
+     #  map
+     #else
+      #  {args,MapSet.put(funs,fun)}
+    # end
+    float when  is_float(float) -> map
+    int   when  is_integer(int) -> map
+    string when is_binary(string)  -> map
+  end
+
+end
+
+
+#########################
+#################
+
+
 #########################3 OLD
 
 def compile_and_load_kernel({:ker, _k, k_type,{ast, is_typed?, delta}},  l) do

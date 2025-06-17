@@ -5,6 +5,31 @@ defmodule PolyHok do
       #IO.puts("ok")
   end
 
+  defmacro clo({:fn, aa, [{:->, bb , [para,body]}] }) do
+    # IO.inspect "body: #{inspect body}"
+    #raise "hell"
+     body =  PolyHok.CudaBackend.add_return(body)
+     name = "anon_" <> PolyHok.CudaBackend.gen_lambda_name()
+     function = {:fn, aa, [{:->, bb , [para,body]}] }
+     r =  JIT.find_free_vars({:fn, aa, [{:->, bb , [para,body]}] })
+     list = r
+     |>  Enum.map(fn p -> {p, [], nil} end)
+
+    # IO.inspect list
+     resp =  quote(do: {:closure , unquote(name),unquote(Macro.escape function), unquote list})
+   #  resp =  quote(do: {:anon , unquote(name),unquote({:fn, aa, [{:->, bb , [para,body]}] })})
+     resp
+   # IO.inspect resp
+     #IO.inspect function
+     #raise "hell"
+     #{fname,type} = PolyHok.CudaBackend.gen_lambda("Elixir.App",function)
+     #result = quote do: PolyHok.load_lambda_compilation(unquote("Elixir.App"), unquote(fname), unquote(type))
+     #result
+     #IO.inspect result
+     #raise "hell"
+
+   end
+
   defmacro phok({:fn, aa, [{:->, bb , [para,body]}] }) do
    # IO.inspect "body: #{inspect body}"
     body =  PolyHok.CudaBackend.add_return(body)
@@ -881,11 +906,11 @@ def spawn(k,t,b,l) do
 
   prog = Enum.reduce(prog,"", fn x, y -> y<>x end)
 
- 
+
   args = process_args_no_fun(l)
   types_args = JIT.get_types_para(kast,inf_types)
 
- 
+
   jit_compile_and_launch_nif(Kernel.to_charlist(kernel_name),Kernel.to_charlist(prog),t,b, length(args), types_args,args)
 
 
