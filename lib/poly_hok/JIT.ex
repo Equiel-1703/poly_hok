@@ -102,26 +102,7 @@ def compile_kernel({:defk,_,[header,[body]]},inf_types,subs) do
    #IO.puts accessfunc
    "\n" <> k <> "\n\n" # <> accessfunc
 end
-##########################
-#########  creates a map from function arguments to the kernel to their extra parameters
-#########
-##########################
 
-def closure_elimination(kast,l) do
-  ###### process closure
-  ##### adds extra parameters to kernels
-  ####  adds extra arguments to closure calls
-  ###   adds extra arguments to the kernel call
-  #############
-   map_extra_args =  JIT.gen_map_fun_name_to_extra_para(kast,l)
-   IO.inspect map_extra_args
-   kast = JIT.add_extra_closure_args(map_extra_args,kast)
-   IO.inspect kast
-   #raise "hrell"
-   kast = JIT.add_extra_closure_param(kast,l)
-   l = JIT.add_extra_args_from_closures(l)
-   {kast,l}
-end
   #############################################################
 ###############################
 ##########
@@ -130,6 +111,31 @@ end
 ################
 
 
+def closure_elimination(kast,l) do
+  ###### process closure
+  ##### adds extra parameters to kernels
+  ####  adds extra arguments to closure calls
+  ###   adds extra arguments to the kernel call
+  #############
+  if (contains_closure(l))do
+   map_extra_args =  JIT.gen_map_fun_name_to_extra_para(kast,l)
+   IO.inspect map_extra_args
+   kast = JIT.add_extra_closure_args(map_extra_args,kast)
+   IO.inspect kast
+   #raise "hrell"
+   kast = JIT.add_extra_closure_param(kast,l)
+   l = JIT.add_extra_args_from_closures(l)
+   {kast,l}
+  else
+    {kast,l}
+  end
+end
+
+def contains_closure([]), do: false
+def contains_closure([{:closure,_name,_ast,_cargs,_cvalues}|lt]), do: true
+def contains_closure([a|lt]), do: contains_closure(lt)
+
+#########  creates a map from function arguments to the kernel to their extra parameters
 
 def gen_map_fun_name_to_extra_para({:defk,info,[header,[body]]},l) do
   {fname, info_header, para} = header
@@ -175,9 +181,12 @@ defp gen_extra_closure_param(p,a) do
   raise "Kernel is receiving a list or arguments with the wrong size!"
 end
 
+####### adds extra arguments from closures to the list of arguments of
+####### kernel and substitute closures by anonymous functions
+
 def add_extra_args_from_closures([]), do: []
-def add_extra_args_from_closures([{:closure,name,ast,cargs,cvalues}|targ]) do
-  [{:closure,name,ast,cargs,cvalues}|cvalues] ++ add_extra_args_from_closures(targ)
+def add_extra_args_from_closures([{:closure,name,ast,_cargs,cvalues}|targ]) do
+  [{:anon,name,ast}|cvalues] ++ add_extra_args_from_closures(targ)
 end
 def add_extra_args_from_closures([arg|targ]) do
   [arg| add_extra_args_from_closures(targ)]
@@ -221,8 +230,7 @@ def get_function_parameters_and_their_types({:defk,_,[header,[_body]]}, actual_p
           |> Enum.filter(fn {_n,p} -> is_function_para(p) end)
           |> Enum.map(fn {n,p} -> case p do
                                       {:anon, name, code} -> {:anon, name, code, delta[n]}
-                                      {:closure,name,code,_p,_a} -> {:anon,name,code,delta[n]}
-                                      _ -> {get_function_name(p),delta[n]}
+                                       _ -> {get_function_name(p),delta[n]}
                                   end
                                   end)
 end
@@ -238,15 +246,11 @@ end
 def is_function_para(func) do
   case func do
     {:anon, _name, _code} -> true
-    {:closure,_name,_ast_,_para,_args} ->true
     func when is_function(func) -> true
     _h -> false
   end
 end
 def get_function_name({:anon, name, _code}) do
-  name
-end
-def get_function_name({:closure, name, _ast, _para,_args}) do
   name
 end
 def get_function_name(fun) do
