@@ -10,24 +10,17 @@ defmodule PolyHok do
     #raise "hell"
      body =  PolyHok.CudaBackend.add_return(body)
      name = "anon_" <> PolyHok.CudaBackend.gen_lambda_name()
-     function = {:fn, aa, [{:->, bb , [para,body]}] }
-     r =  JIT.find_free_vars({:fn, aa, [{:->, bb , [para,body]}] })
-     list = r
+
+     free =  JIT.find_free_vars({:fn, aa, [{:->, bb , [para,body]}] })
+     extra = free
      |>  Enum.map(fn p -> {p, [], nil} end)
 
+     function = {:fn, aa, [{:->, bb , [para ++ extra]}] }
+
     # IO.inspect list
-     resp =  quote(do: {:closure , unquote(name),unquote(Macro.escape function), unquote list})
+     resp =  quote(do: {:closure , unquote(name),unquote(Macro.escape function), unquote(free), unquote(extra)})
    #  resp =  quote(do: {:anon , unquote(name),unquote({:fn, aa, [{:->, bb , [para,body]}] })})
      resp
-   # IO.inspect resp
-     #IO.inspect function
-     #raise "hell"
-     #{fname,type} = PolyHok.CudaBackend.gen_lambda("Elixir.App",function)
-     #result = quote do: PolyHok.load_lambda_compilation(unquote("Elixir.App"), unquote(fname), unquote(type))
-     #result
-     #IO.inspect result
-     #raise "hell"
-
    end
 
   defmacro phok({:fn, aa, [{:->, bb , [para,body]}] }) do
@@ -883,9 +876,18 @@ def spawn(k,t,b,l) do
             {a,g} -> {a,g}
             nil -> raise "Unknown kernel #{inspect kernel_name}"
   end
+
+   map_extra_args =  JIT.gen_map_fun_name_to_extra_para(kast,l)
+   IO.inspect map_extra_args
+   kast = JIT.add_extra_closure_args(map_extra_args,kast)
+   #IO.inspect kast
+   kast = JIT.add_extra_closure_param(kast,l)
+   l = JIT.add_extra_args_from_closures(l)
+
   delta = JIT.gen_types_delta(kast,l)
   #IO.inspect "Delta: #{inspect delta}"
   inf_types = JIT.infer_types(kast,delta)
+  IO.inspect kast
   #IO.inspect "inf type: #{inspect inf_types}"
   #raise "hell"
   subs = JIT.get_function_parameters(kast,l)
