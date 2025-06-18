@@ -15,7 +15,8 @@ defmodule PolyHok do
      extra = free
      |>  Enum.map(fn p -> {p, [], nil} end)
 
-     function = {:fn, aa, [{:->, bb , [para ++ extra]}] }
+     free = Enum.map(free, fn p -> String.to_atom(name <> Atom.to_string(p)) end)
+     function = {:fn, aa, [{:->, bb , [para ++ extra,body]}] }
 
     # IO.inspect list
      resp =  quote(do: {:closure , unquote(name),unquote(Macro.escape function), unquote(free), unquote(extra)})
@@ -877,17 +878,13 @@ def spawn(k,t,b,l) do
             nil -> raise "Unknown kernel #{inspect kernel_name}"
   end
 
-   map_extra_args =  JIT.gen_map_fun_name_to_extra_para(kast,l)
-   IO.inspect map_extra_args
-   kast = JIT.add_extra_closure_args(map_extra_args,kast)
-   #IO.inspect kast
-   kast = JIT.add_extra_closure_param(kast,l)
-   l = JIT.add_extra_args_from_closures(l)
+
+  {kast,l} = JIT.closure_elimination(kast,l)
 
   delta = JIT.gen_types_delta(kast,l)
   #IO.inspect "Delta: #{inspect delta}"
   inf_types = JIT.infer_types(kast,delta)
-  IO.inspect kast
+  #IO.inspect kast
   #IO.inspect "inf type: #{inspect inf_types}"
   #raise "hell"
   subs = JIT.get_function_parameters(kast,l)
@@ -898,7 +895,8 @@ def spawn(k,t,b,l) do
   other_funs = fun_graph
                 |> Enum.map(fn x -> {x, inf_types[x]} end)
                 |> Enum.filter(fn {_,i} -> i != nil end)
-  #IO.inspect funs
+  IO.inspect funs
+  #raise "uahu"
   #IO.inspect other_funs
   comp = Enum.map(funs++other_funs,&JIT.compile_function/1)
   comp = Enum.reduce(comp,[], fn x, y -> y++x end)

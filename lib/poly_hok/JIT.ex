@@ -22,6 +22,8 @@ defmodule JIT do
 
 
     fun_type =  Map.get(inf_types,:return)
+    fun_type = if (fun_type == :unit) do :void else fun_type end
+
 
     cuda_body = PolyHok.CudaBackend.gen_cuda_jit(body,inf_types,param_vars,"module",MapSet.new())
     k =        PolyHok.CudaBackend.gen_function(fname,param_list,cuda_body,fun_type)
@@ -104,6 +106,31 @@ end
 #########  creates a map from function arguments to the kernel to their extra parameters
 #########
 ##########################
+
+def closure_elimination(kast,l) do
+  ###### process closure
+  ##### adds extra parameters to kernels
+  ####  adds extra arguments to closure calls
+  ###   adds extra arguments to the kernel call
+  #############
+   map_extra_args =  JIT.gen_map_fun_name_to_extra_para(kast,l)
+   IO.inspect map_extra_args
+   kast = JIT.add_extra_closure_args(map_extra_args,kast)
+   IO.inspect kast
+   #raise "hrell"
+   kast = JIT.add_extra_closure_param(kast,l)
+   l = JIT.add_extra_args_from_closures(l)
+   {kast,l}
+end
+  #############################################################
+###############################
+##########
+############  BEGIN CLOSURE ELIMINATION
+############
+################
+
+
+
 def gen_map_fun_name_to_extra_para({:defk,info,[header,[body]]},l) do
   {fname, info_header, para} = header
   param_vars = para
@@ -156,8 +183,8 @@ def add_extra_args_from_closures([arg|targ]) do
   [arg| add_extra_args_from_closures(targ)]
 end
 
-
-
+##################################
+############# END closure elimination
 ###################################
 def gen_delta_from_type( {:defd,_,[header,[_body]]}, {return_type, types} ) do
    {_, _, formal_para} = header
@@ -194,6 +221,7 @@ def get_function_parameters_and_their_types({:defk,_,[header,[_body]]}, actual_p
           |> Enum.filter(fn {_n,p} -> is_function_para(p) end)
           |> Enum.map(fn {n,p} -> case p do
                                       {:anon, name, code} -> {:anon, name, code, delta[n]}
+                                      {:closure,name,code,_p,_a} -> {:anon,name,code,delta[n]}
                                       _ -> {get_function_name(p),delta[n]}
                                   end
                                   end)
@@ -207,20 +235,18 @@ def get_function_parameters({:defk,_,[header,[_body]]}, actual_para) do
           |> Enum.reduce( Map.new(), fn {n,p}, map -> Map.put(map,n,get_function_name(p)) end)
          # |> Enum.map(fn {n,p} -> {n,p} end)
 end
-def is_anon(func) do
-  case func do
-    {:anon,_name,_code} -> true
-    _ -> false
-  end
-end
 def is_function_para(func) do
   case func do
     {:anon, _name, _code} -> true
+    {:closure,_name,_ast_,_para,_args} ->true
     func when is_function(func) -> true
     _h -> false
   end
 end
 def get_function_name({:anon, name, _code}) do
+  name
+end
+def get_function_name({:closure, name, _ast, _para,_args}) do
   name
 end
 def get_function_name(fun) do

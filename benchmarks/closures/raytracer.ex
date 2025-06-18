@@ -73,7 +73,7 @@ defd raytracing(image, width,  spheres ,x,y) do
 
 end
 
-defk mapxy_2D_step_2_para_no_resp_kernel(d_array,  step, par1, par2,size,f) do
+defk mapxy_2D_step_2_para_no_resp_kernel(d_array,  step, size,f) do
 
   x = threadIdx.x + blockIdx.x * blockDim.x
   y = threadIdx.y + blockIdx.y * blockDim.y
@@ -82,12 +82,12 @@ defk mapxy_2D_step_2_para_no_resp_kernel(d_array,  step, par1, par2,size,f) do
    id  = step * offset
   #f(id,id)
   if (offset < (size*size)) do
-    f(d_array+id,par1,par2,x,y)
+    f(d_array+id,x,y)
   end
 end
-def mapxy_2D_para_no_resp(d_array,  step,par1, par2, size, f) do
+def mapxy_2D_para_no_resp(d_array,  step, size, f) do
 
-    PolyHok.spawn(&RayTracer.mapxy_2D_step_2_para_no_resp_kernel/6,{trunc(size/16),trunc(size/16),1},{16,16,1},[d_array,step,par1,par2,size,f])
+    PolyHok.spawn(&RayTracer.mapxy_2D_step_2_para_no_resp_kernel/6,{trunc(size/16),trunc(size/16),1},{16,16,1},[d_array,step,size,f])
     d_array
 end
 
@@ -164,6 +164,7 @@ defmodule Main do
         height = width
 
 
+
         #imageList = Matrex.zeros(1, (width + 1) * (height + 1) * 4)
 
         prev = System.monotonic_time()
@@ -176,7 +177,7 @@ defmodule Main do
         y = 20
         #func = PolyHok.clo fn(z) -> x + z end
 
-        func = PolyHok.clo fn (image)->
+        func = PolyHok.clo fn (image, x, y)->
           # defd raytracing(image, width,  spheres ,x,y) do
 
           ox = 0.0
@@ -223,12 +224,12 @@ defmodule Main do
           image[3] = 255
 
         end
-        #IO.inspect func
+        IO.inspect func
        # {:anon, _a1, _a2, list} = func
        # list
        # |> Enum.map(fn v -> IO.inspect v end)
 
-        RayTracer.mapxy_2D_para_no_resp(ref_image, 4,width, spheres, width, func)
+        RayTracer.mapxy_2D_para_no_resp(ref_image, 4,width, func)
 
        # PolyHok.spawn_jit(&RayTracer.raytracing/4,{trunc(width/16),trunc(height/16),1},{16,16,1},[width, height, refSphere, refImag])
 
