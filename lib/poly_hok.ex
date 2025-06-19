@@ -895,7 +895,7 @@ def spawn(k,t,b,l) do
   other_funs = fun_graph
                 |> Enum.map(fn x -> {x, inf_types[x]} end)
                 |> Enum.filter(fn {_,i} -> i != nil end)
-  IO.inspect funs
+  #IO.inspect funs
   #raise "uahu"
   #IO.inspect other_funs
   comp = Enum.map(funs++other_funs,&JIT.compile_function/1)
@@ -910,8 +910,8 @@ def spawn(k,t,b,l) do
   args = process_args_no_fun(l)
   types_args = JIT.get_types_para(kast,inf_types)
 
-  IO.puts prog
-  raise "hell"
+  #IO.puts prog
+  #raise "hell"
 
   jit_compile_and_launch_nif(Kernel.to_charlist(kernel_name),Kernel.to_charlist(prog),t,b, length(args), types_args,args)
 

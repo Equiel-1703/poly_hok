@@ -4,7 +4,7 @@ defmodule JIT do
 
   def compile_function({:anon,fname,code,type}) do
    # IO.puts "Compile function: #{fname}"
-
+   #IO.inspect code
     delta = gen_delta_from_type(code,type)
    # IO.inspect "Delta: #{inspect delta}"
 
@@ -29,12 +29,14 @@ defmodule JIT do
     k =        PolyHok.CudaBackend.gen_function(fname,param_list,cuda_body,fun_type)
 
     function = "\n" <> k <> "\n\n"
-
+    #IO.inspect k
+    #raise "hell"
     [function]
 end
 def compile_function({name,type}) do
   #IO.puts "Compile function: #{name}"
   nast = PolyHok.load_ast(name)
+ # IO.inspect nast
   case nast do
     nil -> [""]
     {fast,fun_graph} ->
@@ -62,7 +64,8 @@ def compile_function({name,type}) do
           k =        PolyHok.CudaBackend.gen_function(fname,param_list,cuda_body,fun_type)
 
           function = "\n" <> k <> "\n\n"
-
+         # IO.inspect k
+          #raise "hell"
           other_funs = fun_graph
                 |> Enum.map(fn x -> {x, inf_types[x]} end)
                 |> Enum.filter(fn {_,i} -> i != nil end)
@@ -119,9 +122,9 @@ def closure_elimination(kast,l) do
   #############
   if (contains_closure(l))do
    map_extra_args =  JIT.gen_map_fun_name_to_extra_para(kast,l)
-   IO.inspect map_extra_args
+   #IO.inspect map_extra_args
    kast = JIT.add_extra_closure_args(map_extra_args,kast)
-   IO.inspect kast
+   #IO.inspect kast
    #raise "hrell"
    kast = JIT.add_extra_closure_param(kast,l)
    l = JIT.add_extra_args_from_closures(l)
@@ -132,13 +135,13 @@ def closure_elimination(kast,l) do
 end
 
 def contains_closure([]), do: false
-def contains_closure([{:closure,_name,_ast,_cargs,_cvalues}|lt]), do: true
-def contains_closure([a|lt]), do: contains_closure(lt)
+def contains_closure([{:closure,_name,_ast,_cargs,_cvalues}|_lt]), do: true
+def contains_closure([_a|lt]), do: contains_closure(lt)
 
 #########  creates a map from function arguments to the kernel to their extra parameters
 
-def gen_map_fun_name_to_extra_para({:defk,info,[header,[body]]},l) do
-  {fname, info_header, para} = header
+def gen_map_fun_name_to_extra_para({:defk,_info,[header,[_body]]},l) do
+  {_fname, _info_header, para} = header
   param_vars = para
         |>  Enum.map(fn {p, _, _}-> p end)
 
@@ -148,15 +151,15 @@ end
 defp gen_map_to_extra_para([],[]) do
   []
 end
-defp gen_map_to_extra_para([para|tpara],[{:closure,name,ast,cargs,cvalues}|targ]) do
-  extra_args = Enum.map(cargs,fn p -> {p,[],nil} end)
+defp gen_map_to_extra_para([para|tpara],[{:closure,_name,_ast,cargs,_cvalues}|targ]) do
+ # extra_args = Enum.map(cargs,fn p -> {p,[],nil} end)
 
   [{para, cargs}| gen_map_to_extra_para(tpara,targ)]
 end
-defp gen_map_to_extra_para([para|tpara],[arg|targ]) do
+defp gen_map_to_extra_para([_para|tpara],[_arg|targ]) do
   gen_map_to_extra_para(tpara,targ)
 end
-defp gen_map_to_extra_para(p,a) do
+defp gen_map_to_extra_para(_p,_a) do
   raise "Kernel is receiving a list or arguments with the wrong size!"
 end
 #### adds extra closure parameters to kernel parameters
@@ -169,15 +172,15 @@ end
 defp gen_extra_closure_param([],[]) do
   []
 end
-defp gen_extra_closure_param([para|tpara],[{:closure,name,ast,cargs,cvalues}|targ]) do
+defp gen_extra_closure_param([para|tpara],[{:closure,_name,_ast,cargs,_cvalues}|targ]) do
   extra_args = Enum.map(cargs,fn p -> {p,[],nil} end)
 
   [para| extra_args] ++ gen_extra_closure_param(tpara,targ)
 end
-defp gen_extra_closure_param([para|tpara],[arg|targ]) do
+defp gen_extra_closure_param([para|tpara],[_arg|targ]) do
   [para |gen_extra_closure_param(tpara,targ)]
 end
-defp gen_extra_closure_param(p,a) do
+defp gen_extra_closure_param(_p,_a) do
   raise "Kernel is receiving a list or arguments with the wrong size!"
 end
 
@@ -590,7 +593,7 @@ def find_free_vars({:fn, _, [{:->, _ , [para,body]}] }) do
     |>  MapSet.new()
 
   #IO.inspect "body #{inspect body}"
-    {bound,free} = find_free_vars_body({param_vars,MapSet.new()},body)
+    {_bound,free} = find_free_vars_body({param_vars,MapSet.new()},body)
    # IO.puts "Bound"
    # IO.inspect bound
    # IO.puts "Free"

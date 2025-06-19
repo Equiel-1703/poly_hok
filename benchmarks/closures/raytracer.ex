@@ -173,8 +173,6 @@ defmodule Main do
         ref_image = PolyHok.new_gnx_fake({width, height, 4},{:s,32})
 
        # spheres= Nx.tensor([1,2,3])
-        x =10
-        y = 20
         #func = PolyHok.clo fn(z) -> x + z end
 
         func = PolyHok.clo fn (image, x, y)->
@@ -224,7 +222,7 @@ defmodule Main do
           image[3] = 255
 
         end
-        IO.inspect func
+       # IO.inspect func
        # {:anon, _a1, _a2, list} = func
        # list
        # |> Enum.map(fn v -> IO.inspect v end)

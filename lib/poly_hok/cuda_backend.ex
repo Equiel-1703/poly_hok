@@ -505,7 +505,8 @@ defp is_exp?(exp) do
     {:!, _info, [_arg]} -> true
     {op, _inf, _args} when op in [ :&&, :||] -> true
     {var, _info, nil} when is_atom(var) -> true
-    {_fun, _, args} when is_list(args)-> true
+   # {:=,_,_} -> false
+   # {_fun, _, args} when is_list(args)-> true
     #{_fun, _, _noargs} ->
     float when  is_float(float) -> true
     int   when  is_integer(int) -> true
@@ -533,6 +534,7 @@ def gen_cuda_jit(body,types,param_vars,module,subs) do
     pid = spawn_link(fn -> types_server(param_vars,types,module,subs) end)
     Process.register(pid, :types_server)
     code = gen_body(body)
+    #IO.inspect code
     send(pid,{:kill})
     Process.unregister(:types_server)
     code
