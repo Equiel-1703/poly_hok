@@ -20,7 +20,6 @@ PolyHok.defmodule Ske do
   include CAS_Poly
 
   def reduce(ref, initial, f) do
-    IO.inspect "io"
      shape = PolyHok.get_shape_gnx(ref)
      type = PolyHok.get_type_gnx(ref)
      size = Tuple.product(shape)
@@ -42,8 +41,6 @@ PolyHok.defmodule Ske do
 
         x -> raise "new_gnx: type #{x} not suported"
      end
-
-     IO.inspect "io2"
 
       result_gpu
   end
