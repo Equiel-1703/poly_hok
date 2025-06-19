@@ -86,6 +86,7 @@ defmodule PolyHok.TypeInference do
   end
   defp check_return([h|t]) do
     IO.inspect "AHHUUUUUUUU"
+    IO.inspect t
     [h|check_return t]
   end
   defp check_return([com]) do
