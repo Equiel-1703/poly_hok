@@ -879,7 +879,7 @@ def spawn(k,t,b,l) do
   end
 
 
-  {kast,l} = JIT.closure_elimination(kast,l)
+ # {kast,l} = JIT.closure_elimination(kast,l)
 
   delta = JIT.gen_types_delta(kast,l)
   #IO.inspect "Delta: #{inspect delta}"
