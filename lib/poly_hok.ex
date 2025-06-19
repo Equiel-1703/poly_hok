@@ -4,6 +4,25 @@ defmodule PolyHok do
       :erlang.load_nif("./priv/gpu_nifs", 0)
       #IO.puts("ok")
   end
+  
+  defmacro clo({:fn, aa, [{:->, bb , [para,body]}] }) do
+    # IO.inspect "body: #{inspect body}"
+    #raise "hell"
+     body =  PolyHok.CudaBackend.add_return(body)
+     name = "anon_" <> PolyHok.CudaBackend.gen_lambda_name()
+
+     free =  JIT.find_free_vars({:fn, aa, [{:->, bb , [para,body]}] })
+     extra = free
+     |>  Enum.map(fn p -> {p, [], nil} end)
+
+     free = Enum.map(free, fn p -> String.to_atom(name <> Atom.to_string(p)) end)
+     function = {:fn, aa, [{:->, bb , [para ++ extra,body]}] }
+
+    # IO.inspect list
+     resp =  quote(do: {:closure , unquote(name),unquote(Macro.escape function), unquote(free), unquote(extra)})
+   #  resp =  quote(do: {:anon , unquote(name),unquote({:fn, aa, [{:->, bb , [para,body]}] })})
+     resp
+   end
 
   defmacro phok({:fn, aa, [{:->, bb , [para,body]}] }) do
    # IO.inspect "body: #{inspect body}"
