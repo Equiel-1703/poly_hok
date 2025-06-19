@@ -89,6 +89,7 @@ defmodule PolyHok.TypeInference do
     [h|check_return t]
   end
   defp check_return([com]) do
+    IO.inspect "mentiroso"
     case com do
           {:return,_,_} -> [com]
           {:if, info, [ exp,[do: block]]} -> [{:if, info, [ exp,[do: check_return block]]}]
@@ -101,6 +102,7 @@ defmodule PolyHok.TypeInference do
     end
   end
   defp check_return(com) do
+    IO.inspect "chegou"
     case com do
           {:return,_,_} -> com
           {:if, info, [ exp,[do: block]]} -> {:if, info, [ exp,[do: check_return block]]}
