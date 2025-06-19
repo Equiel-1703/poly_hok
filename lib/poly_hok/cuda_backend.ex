@@ -493,7 +493,7 @@ defp check_return([com]) do
   end
 end
 defp check_return([h|t]) do
-  IO.inspect "AHHHHHHHH"
+ # IO.inspect "AHHHHHHHH"
   [h|check_return t]
 end
 defp check_return(com) do
