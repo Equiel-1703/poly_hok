@@ -106,98 +106,7 @@ def compile_kernel({:defk,_,[header,[body]]},inf_types,subs) do
    "\n" <> k <> "\n\n" # <> accessfunc
 end
 
-  #############################################################
-###############################
-##########
-############  BEGIN CLOSURE ELIMINATION
-############
-################
-
-
-def closure_elimination(kast,l) do
-  ###### process closure
-  ##### adds extra parameters to kernels
-  ####  adds extra arguments to closure calls
-  ###   adds extra arguments to the kernel call
-  #############
-  if (contains_closure(l))do
-   map_extra_args =  JIT.gen_map_fun_name_to_extra_para(kast,l)
-   #IO.inspect map_extra_args
-   kast = JIT.add_extra_closure_args(map_extra_args,kast)
-   #IO.inspect kast
-   #raise "hrell"
-   kast = JIT.add_extra_closure_param(kast,l)
-   l = JIT.add_extra_args_from_closures(l)
-   {kast,l}
-  else
-    {kast,l}
-  end
-end
-
-def contains_closure([]), do: false
-def contains_closure([{:closure,_name,_ast,_cargs,_cvalues}|_lt]), do: true
-def contains_closure([_a|lt]), do: contains_closure(lt)
-
-#########  creates a map from function arguments to the kernel to their extra parameters
-
-def gen_map_fun_name_to_extra_para({:defk,_info,[header,[_body]]},l) do
-  {_fname, _info_header, para} = header
-  param_vars = para
-        |>  Enum.map(fn {p, _, _}-> p end)
-
-  Map.new(gen_map_to_extra_para(param_vars,l))
-end
-
-defp gen_map_to_extra_para([],[]) do
-  []
-end
-defp gen_map_to_extra_para([para|tpara],[{:closure,_name,_ast,cargs,_cvalues}|targ]) do
- # extra_args = Enum.map(cargs,fn p -> {p,[],nil} end)
-
-  [{para, cargs}| gen_map_to_extra_para(tpara,targ)]
-end
-defp gen_map_to_extra_para([_para|tpara],[_arg|targ]) do
-  gen_map_to_extra_para(tpara,targ)
-end
-defp gen_map_to_extra_para(_p,_a) do
-  raise "Kernel is receiving a list or arguments with the wrong size!"
-end
-#### adds extra closure parameters to kernel parameters
-
-def add_extra_closure_param({:defk,info,[header,[body]]},l) do
-  {fname, info_header, para} = header
-  new_param_list = gen_extra_closure_param(para,l)
-  {:defk,info,[{fname, info_header, new_param_list},[body]]}
-end
-defp gen_extra_closure_param([],[]) do
-  []
-end
-defp gen_extra_closure_param([para|tpara],[{:closure,_name,_ast,cargs,_cvalues}|targ]) do
-  extra_args = Enum.map(cargs,fn p -> {p,[],nil} end)
-
-  [para| extra_args] ++ gen_extra_closure_param(tpara,targ)
-end
-defp gen_extra_closure_param([para|tpara],[_arg|targ]) do
-  [para |gen_extra_closure_param(tpara,targ)]
-end
-defp gen_extra_closure_param(_p,_a) do
-  raise "Kernel is receiving a list or arguments with the wrong size!"
-end
-
-####### adds extra arguments from closures to the list of arguments of
-####### kernel and substitute closures by anonymous functions
-
-def add_extra_args_from_closures([]), do: []
-def add_extra_args_from_closures([{:closure,name,ast,_cargs,cvalues}|targ]) do
-  [{:anon,name,ast}|cvalues] ++ add_extra_args_from_closures(targ)
-end
-def add_extra_args_from_closures([arg|targ]) do
-  [arg| add_extra_args_from_closures(targ)]
-end
-
-##################################
-############# END closure elimination
-###################################
+  
 def gen_delta_from_type( {:defd,_,[header,[_body]]}, {return_type, types} ) do
    {_, _, formal_para} = header
    delta=formal_para
@@ -580,6 +489,98 @@ defp find_function_calls_if(map,[bexp, [do: then]]) do
 
 end
 
+#############################################################
+###############################
+##########
+############  BEGIN CLOSURE ELIMINATION
+############
+################
+
+
+def closure_elimination(kast,l) do
+  ###### process closure
+  ##### adds extra parameters to kernels
+  ####  adds extra arguments to closure calls
+  ###   adds extra arguments to the kernel call
+  #############
+  if (contains_closure(l))do
+   map_extra_args =  JIT.gen_map_fun_name_to_extra_para(kast,l)
+   #IO.inspect map_extra_args
+   kast = JIT.add_extra_closure_args(map_extra_args,kast)
+   #IO.inspect kast
+   #raise "hrell"
+   kast = JIT.add_extra_closure_param(kast,l)
+   l = JIT.add_extra_args_from_closures(l)
+   {kast,l}
+  else
+    {kast,l}
+  end
+end
+
+def contains_closure([]), do: false
+def contains_closure([{:closure,_name,_ast,_cargs,_cvalues}|_lt]), do: true
+def contains_closure([_a|lt]), do: contains_closure(lt)
+
+#########  creates a map from function arguments to the kernel to their extra parameters
+
+def gen_map_fun_name_to_extra_para({:defk,_info,[header,[_body]]},l) do
+  {_fname, _info_header, para} = header
+  param_vars = para
+        |>  Enum.map(fn {p, _, _}-> p end)
+
+  Map.new(gen_map_to_extra_para(param_vars,l))
+end
+
+defp gen_map_to_extra_para([],[]) do
+  []
+end
+defp gen_map_to_extra_para([para|tpara],[{:closure,_name,_ast,cargs,_cvalues}|targ]) do
+ # extra_args = Enum.map(cargs,fn p -> {p,[],nil} end)
+
+  [{para, cargs}| gen_map_to_extra_para(tpara,targ)]
+end
+defp gen_map_to_extra_para([_para|tpara],[_arg|targ]) do
+  gen_map_to_extra_para(tpara,targ)
+end
+defp gen_map_to_extra_para(_p,_a) do
+  raise "Kernel is receiving a list or arguments with the wrong size!"
+end
+#### adds extra closure parameters to kernel parameters
+
+def add_extra_closure_param({:defk,info,[header,[body]]},l) do
+  {fname, info_header, para} = header
+  new_param_list = gen_extra_closure_param(para,l)
+  {:defk,info,[{fname, info_header, new_param_list},[body]]}
+end
+defp gen_extra_closure_param([],[]) do
+  []
+end
+defp gen_extra_closure_param([para|tpara],[{:closure,_name,_ast,cargs,_cvalues}|targ]) do
+  extra_args = Enum.map(cargs,fn p -> {p,[],nil} end)
+
+  [para| extra_args] ++ gen_extra_closure_param(tpara,targ)
+end
+defp gen_extra_closure_param([para|tpara],[_arg|targ]) do
+  [para |gen_extra_closure_param(tpara,targ)]
+end
+defp gen_extra_closure_param(_p,_a) do
+  raise "Kernel is receiving a list or arguments with the wrong size!"
+end
+
+####### adds extra arguments from closures to the list of arguments of
+####### kernel and substitute closures by anonymous functions
+
+def add_extra_args_from_closures([]), do: []
+def add_extra_args_from_closures([{:closure,name,ast,_cargs,cvalues}|targ]) do
+  [{:anon,name,ast}|cvalues] ++ add_extra_args_from_closures(targ)
+end
+def add_extra_args_from_closures([arg|targ]) do
+  [arg| add_extra_args_from_closures(targ)]
+end
+
+
+
+
 ##################### FIND FREE VARIABLES ##############################
 #################################################################
 
@@ -793,11 +794,9 @@ defp find_free_vars_if(map,[bexp, [do: then]]) do
 
 end
 
-#################################
-################### substitute variables that represent functions by the actual function names
-############   (substitutes formal parameters that are functions by their actual values)
-############### Also adds extra parameteres when calling a closure
-#### Takes the map created with names of functions and the ast,  and returns a new ast
+####################################################
+############### adds extra parameteres when calling a closure
+#### Takes a map (closure name -> extra para) and the ast,  and returns a new ast
 ########################
 def add_extra_closure_args(map,{:defk, i1,[header, [body]]}) do
   nbody = add_extra_closure_args__body(map,body)
@@ -916,13 +915,15 @@ defp add_extra_closure_args__exp(map,exp) do
 
  end
 
-
+##################################
+############# END closure elimination
+###################################
 
 
 
 #########################
 #################
-######################### OLD CODE NOTE USED ANYMORE
+######################### OLD CODE NOT USED ANYMORE
 ####################################
 
 def compile_and_load_kernel({:ker, _k, k_type,{ast, is_typed?, delta}},  l) do
