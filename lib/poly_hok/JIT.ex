@@ -405,8 +405,8 @@ defp process_definitions(module_name,[h|t],l) do
                                       #  IO.inspect "Process definitions: #{fname}"
 
 
-                                        #body = PolyHok.TypeInference.add_return(Map.put(%{}, :return, :none), body)
-                                        body = PolyHok.CudaBackend.add_return( body)
+                                        body = PolyHok.TypeInference.add_return(Map.put(%{}, :return, :none), body)
+                                        #body = PolyHok.CudaBackend.add_return( body)
                                    #  IO.inspect body
                                         funs = find_functions({:defd , ii, [header,[body]]})
                                        # IO.inspect "Function graph: #{inspect funs}"
