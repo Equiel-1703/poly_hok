@@ -46,7 +46,7 @@ PolyHok.defmodule NBodies do
     {_l,step} = PolyHok.get_shape_gnx(d_array)
     nBlocks = floor ((size + block_size - 1) / block_size)
 
-      PolyHok.spawn(&NBodies.map_step_no_resp_kernel/6,{nBlocks,1,1},{block_size,1,1},[d_array,step,size,f])
+      PolyHok.spawn(&NBodies.map_step_no_resp_kernel/4,{nBlocks,1,1},{block_size,1,1},[d_array,step,size,f])
       d_array
   end
  
