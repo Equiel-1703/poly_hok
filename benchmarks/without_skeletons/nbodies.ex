@@ -122,9 +122,9 @@ prev = System.monotonic_time()
 d_buf = PolyHok.new_gnx(h_buf)
 
 
-PolyHok.spawn_jit(&NBodies.gpu_nBodies/4,{nBlocks,1,1},{block_size,1,1},[d_buf,dt,nBodies,softening])
+PolyHok.spawn(&NBodies.gpu_nBodies/4,{nBlocks,1,1},{block_size,1,1},[d_buf,dt,nBodies,softening])
 
-PolyHok.spawn_jit(&Integrate.gpu_integrate/3,{nBlocks,1,1},{block_size,1,1},[d_buf,dt,nBodies])
+PolyHok.spawn(&Integrate.gpu_integrate/3,{nBlocks,1,1},{block_size,1,1},[d_buf,dt,nBodies])
 _gpu_resp = PolyHok.get_gnx(d_buf)
 next = System.monotonic_time()
 

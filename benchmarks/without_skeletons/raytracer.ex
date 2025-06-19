@@ -198,7 +198,7 @@ defmodule Main do
         refSphere = PolyHok.new_gnx(sphereList)
         refImag = PolyHok.new_gnx(1,width * height  * 4,{:s,32})
 
-        PolyHok.spawn_jit(&RayTracer.raytracing/4,{trunc(width/16),trunc(height/16),1},{16,16,1},[width, height, refSphere, refImag])
+        PolyHok.spawn(&RayTracer.raytracing/4,{trunc(width/16),trunc(height/16),1},{16,16,1},[width, height, refSphere, refImag])
 
         image = PolyHok.get_gnx(refImag)
 
