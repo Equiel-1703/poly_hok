@@ -11,3 +11,5 @@ fun = PolyHok.clo fn y -> x + y end
 host_vet = dev_vet
 |> Ske.map(fun)
 |> PolyHok.get_gnx
+
+IO.inspect host_vet
