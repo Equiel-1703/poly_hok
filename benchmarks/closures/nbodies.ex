@@ -38,7 +38,7 @@ PolyHok.defmodule NBodies do
     id  = step * globalId
     #f(id,id)
     if (globalId < size) do
-      f(d_array+id,par1,par2)
+      f(d_array+id)
     end
   end
   def map_no_resp(d_array,  size, f) do
