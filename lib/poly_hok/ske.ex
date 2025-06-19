@@ -43,7 +43,7 @@ PolyHok.defmodule Ske do
         x -> raise "new_gnx: type #{x} not suported"
      end
 
-
+     IO.inspect "io2"
 
       result_gpu
   end
