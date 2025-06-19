@@ -22,6 +22,7 @@ defmodule JIT do
 
 
     fun_type =  Map.get(inf_types,:return)
+    fun_type = if (fun_type == :unit) do :void else fun_type end
 
     cuda_body = PolyHok.CudaBackend.gen_cuda_jit(body,inf_types,param_vars,"module",MapSet.new())
     k =        PolyHok.CudaBackend.gen_function(fname,param_list,cuda_body,fun_type)
