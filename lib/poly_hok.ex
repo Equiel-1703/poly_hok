@@ -877,6 +877,9 @@ def spawn(k,t,b,l) do
             {a,g} -> {a,g}
             nil -> raise "Unknown kernel #{inspect kernel_name}"
   end
+
+  {kast,l} = JIT.closure_elimination(kast,l)
+
   delta = JIT.gen_types_delta(kast,l)
   #IO.inspect "Delta: #{inspect delta}"
   inf_types = JIT.infer_types(kast,delta)
