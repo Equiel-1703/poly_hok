@@ -912,7 +912,7 @@ def spawn(k,t,b,l) do
 
   #IO.puts prog
   #raise "hell"
-
+  IO.puts prog
   jit_compile_and_launch_nif(Kernel.to_charlist(kernel_name),Kernel.to_charlist(prog),t,b, length(args), types_args,args)
 
 
