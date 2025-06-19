@@ -107,8 +107,8 @@ integrate_fun = PolyHok.clo fn p ->
 end
 
 _gpu_resp = d_buf
-  |> NBodies.map_no_resp(nBodies, &NBodies.gpu_nBodies/3)
-  |> NBodies.map_no_resp(nBodies, &NBodies.gpu_integrate/3)
+  |> NBodies.map_no_resp(nBodies, n_bodies_fun)
+  |> NBodies.map_no_resp(nBodies, integrate_fun)
   |> PolyHok.get_gnx
   #|> IO.inspect
 
