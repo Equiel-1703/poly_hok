@@ -487,9 +487,440 @@ defp find_function_calls_if(map,[bexp, [do: then]]) do
   end
 
 end
+#############################################################
+###############################
+##########
+############  BEGIN CLOSURE ELIMINATION
+############
+################
 
-#########################3 OLD
 
+def closure_elimination(kast,l) do
+  ###### process closure
+  ##### adds extra parameters to kernels
+  ####  adds extra arguments to closure calls
+  ###   adds extra arguments to the kernel call
+  #############
+  if (contains_closure(l))do
+   map_extra_args =  JIT.gen_map_fun_name_to_extra_para(kast,l)
+   #IO.inspect map_extra_args
+   kast = JIT.add_extra_closure_args(map_extra_args,kast)
+   #IO.inspect kast
+   #raise "hrell"
+   kast = JIT.add_extra_closure_param(kast,l)
+   l = JIT.add_extra_args_from_closures(l)
+   {kast,l}
+  else
+    {kast,l}
+  end
+end
+
+def contains_closure([]), do: false
+def contains_closure([{:closure,_name,_ast,_cargs,_cvalues}|_lt]), do: true
+def contains_closure([_a|lt]), do: contains_closure(lt)
+
+#########  creates a map from function arguments to the kernel to their extra parameters
+
+def gen_map_fun_name_to_extra_para({:defk,_info,[header,[_body]]},l) do
+  {_fname, _info_header, para} = header
+  param_vars = para
+        |>  Enum.map(fn {p, _, _}-> p end)
+
+  Map.new(gen_map_to_extra_para(param_vars,l))
+end
+
+defp gen_map_to_extra_para([],[]) do
+  []
+end
+defp gen_map_to_extra_para([para|tpara],[{:closure,_name,_ast,cargs,_cvalues}|targ]) do
+ # extra_args = Enum.map(cargs,fn p -> {p,[],nil} end)
+
+  [{para, cargs}| gen_map_to_extra_para(tpara,targ)]
+end
+defp gen_map_to_extra_para([_para|tpara],[_arg|targ]) do
+  gen_map_to_extra_para(tpara,targ)
+end
+defp gen_map_to_extra_para(_p,_a) do
+  raise "Kernel is receiving a list or arguments with the wrong size!"
+end
+#### adds extra closure parameters to kernel parameters
+
+def add_extra_closure_param({:defk,info,[header,[body]]},l) do
+  {fname, info_header, para} = header
+  new_param_list = gen_extra_closure_param(para,l)
+  {:defk,info,[{fname, info_header, new_param_list},[body]]}
+end
+defp gen_extra_closure_param([],[]) do
+  []
+end
+defp gen_extra_closure_param([para|tpara],[{:closure,_name,_ast,cargs,_cvalues}|targ]) do
+  extra_args = Enum.map(cargs,fn p -> {p,[],nil} end)
+
+  [para| extra_args] ++ gen_extra_closure_param(tpara,targ)
+end
+defp gen_extra_closure_param([para|tpara],[_arg|targ]) do
+  [para |gen_extra_closure_param(tpara,targ)]
+end
+defp gen_extra_closure_param(_p,_a) do
+  raise "Kernel is receiving a list or arguments with the wrong size!"
+end
+
+####### adds extra arguments from closures to the list of arguments of
+####### kernel and substitute closures by anonymous functions
+
+def add_extra_args_from_closures([]), do: []
+def add_extra_args_from_closures([{:closure,name,ast,_cargs,cvalues}|targ]) do
+  [{:anon,name,ast}|cvalues] ++ add_extra_args_from_closures(targ)
+end
+def add_extra_args_from_closures([arg|targ]) do
+  [arg| add_extra_args_from_closures(targ)]
+end
+
+
+
+
+##################### FIND FREE VARIABLES ##############################
+#################################################################
+
+
+def find_free_vars({:fn, _, [{:->, _ , [para,body]}] }) do
+  #IO.puts "para"
+  #IO.inspect para
+  #raise "hell"
+  param_vars = para
+    |>  Enum.map(fn {p, _, _}-> p end)
+    |>  MapSet.new()
+
+  #IO.inspect "body #{inspect body}"
+    {_bound,free} = find_free_vars_body({param_vars,MapSet.new()},body)
+   # IO.puts "Bound"
+   # IO.inspect bound
+   # IO.puts "Free"
+   # IO.inspect free
+    MapSet.to_list(free)
+end
+
+
+
+def find_free_vars_body(map,body) do
+
+  case body do
+     {:__block__, _, _code} ->
+      find_free_vars_block(map,body)
+     {:do, {:__block__,pos, code}} ->
+      find_free_vars_block(map, {:__block__, pos,code})
+     {:do, exp} ->
+     # IO.inspect "here #{inspect exp}"
+      find_free_vars_command(map,exp)
+     {_,_,_} ->
+      find_free_vars_command(map,body)
+  end
+end
+
+
+defp find_free_vars_block(map,{:__block__, _info, code}) do
+  Enum.reduce(code,map, fn x,acc -> find_free_vars_command(acc,x) end)
+end
+
+
+defp find_free_vars_command(map,code) do
+  #IO.inspect "here2"
+  case code do
+      {:for,i,[param,[body]]} ->
+       find_free_vars_for(map,{:for,i,[param,[body]]})
+      {:do_while, _i, [[doblock]]} ->
+       find_free_vars_body(map,doblock)
+      {:do_while_test, _i, [exp]} ->
+       find_free_vars_exp(map,exp)
+      {:while, _i, [bexp,[body]]} ->
+       map = find_free_vars_exp(map,bexp)
+       find_free_vars_body(map,body)
+      # CRIAÇÃO DE NOVOS VETORES
+      {{:., _i1, [Access, :get]}, _i2, [{var,_,nil},size]} ->
+        {bound,free} = map
+        bound = MapSet.put(bound,var)
+        find_free_vars_exp({bound,free},size)
+      {:__shared__, _i1, [{{:., _i2, [Access, :get]}, _i3, [{var,_,nil},size]}]} ->
+        {bound,free} = map
+        bound = MapSet.put(bound,var)
+        find_free_vars_exp({bound,free},size)
+      # assignment
+      {:=, _i1, [{{:., _i2, [Access, :get]}, _i3, [{array,_i4,_arag}, acc_exp]}, exp]} ->
+        {bound,free} = map
+        if MapSet.member?(bound,array) do
+          map
+           |> find_free_vars_exp(acc_exp)
+           |> find_free_vars_exp(exp)
+        else
+          {bound, MapSet.put(free,array)}
+          |> find_free_vars_exp(acc_exp)
+          |> find_free_vars_exp(exp)
+        end
+      {:=, _i, [{var,_,nil}, exp]} ->
+        {bound,free} = map
+        {MapSet.put(bound,var), free}
+        |> find_free_vars_exp(exp)
+
+      {:if, _i, if_com} ->
+       find_free_vars_if(map,if_com)
+      {:var, _i1 , [{var,_i2,[{:=, _i3, [{_type,_ii,nil}, exp]}]}]} ->
+        {bound,free} = map
+        {MapSet.put(bound,var),free}
+        |> find_free_vars_exp(exp)
+      {:var, _i1 , [{var,_i2,[{:=, _i3, [_type, exp]}]}]} ->
+        {bound,free} = map
+        {MapSet.put(bound,var),free}
+        |> find_free_vars_exp(exp)
+      {:var, _i1 , [{var,_i2,[{_type,_i3,_t}]}]} ->
+        {bound,free} = map
+        {MapSet.put(bound,var),free}
+
+      {:var, _i1 , [{var,_i2,[_type]}]} ->
+        {bound,free} = map
+        {MapSet.put(bound,var),free}
+      {:type, _i1 , [{_var,_i2,[{_type,_i3,_t}]}]} ->
+        map
+      {:type, _i1 , [{_var,_i2,[_type]}]} ->
+        map
+
+      {:return,_i,[arg]} ->
+   #     IO.inspect "Aqui3"
+       find_free_vars_exp(map,arg)
+
+      {_fun, _info, args} when is_list(args)->
+    #    IO.inspect "Aqui3 #{length args} #{inspect fun}"
+         Enum.reduce(args,map, fn x,acc -> find_free_vars_exp(acc,x) end)
+    #raise "funcao: #{inspect fun}"
+     #   {args,funs} = map
+     #   if MapSet.member?(args,fun) do
+     #     map
+     #   else
+     #      {args,MapSet.put(funs,fun)}
+     #   end
+      number when is_integer(number) or is_float(number) -> raise "Error: #{inspect number} is a command"
+      c -> raise "Found unknown command (#{inspect c}) while searching for free vars."
+
+  end
+end
+
+defp find_free_vars_for({bound,free},{:for,_,[header,[body]]}) do
+  case header do
+    {:in, _,[{var,_,nil},{:range,_,[n]}]} ->
+       {bound,free} = {MapSet.put(bound,var),free}
+            |> find_free_vars_exp(n)
+            |> find_free_vars_body(body)
+
+        {MapSet.delete(bound,var),free}
+    {:in, _,[{var,_,nil},{:range,_,[arg1,arg2]}]} ->
+        {bound,free} =  {MapSet.put(bound,var),free}
+            |> find_free_vars_exp(arg1)
+            |> find_free_vars_exp(arg2)
+            |> find_free_vars_body(body)
+
+        {MapSet.delete(bound,var),free}
+    {:in, _,[{var,_,nil},{:range,_,[arg1,arg2,step]}]} ->
+       {bound,free} = {MapSet.put(bound,var),free}
+            |> find_free_vars_exp(arg1)
+            |> find_free_vars_exp(arg2)
+            |> find_free_vars_exp(step)
+            |> find_free_vars_body(body)
+
+    {MapSet.delete(bound,var),free}
+  end
+end
+
+
+defp find_free_vars_if(map,[bexp, [do: then]]) do
+  map
+  |> find_free_vars_exp(bexp)
+  |> find_free_vars_body(then)
+ end
+ defp find_free_vars_if(map,[bexp, [do: thenbranch, else: elsebranch]]) do
+  map
+  |> find_free_vars_exp(bexp)
+  |> find_free_vars_body(thenbranch)
+  |> find_free_vars_body(elsebranch)
+ end
+
+
+ defp find_free_vars_exp(map,exp) do
+  case exp do
+    ## array index
+    {{:., _i1, [Access, :get]}, _i2, [{array,_ia,_},index]} ->
+      {bound,free} = map
+      if MapSet.member?(bound,array) do
+        map
+         |> find_free_vars_exp(index)
+      else
+        {bound, MapSet.put(free,array)}
+        |> find_free_vars_exp(index)
+      end
+      # cuda constant
+    {{:., _i1, [{_struct, _i2, nil}, _field]},_i3,[]} ->
+        map
+        # cuda constant
+    {{:., _i1, [{:__aliases__, _i2, [_struct]}, _field]}, _i3, []} ->
+       map
+    {op,_info, args} when op in [:+, :-, :/, :*] ->
+     # IO.inspect "Aqui"
+      Enum.reduce(args,map, fn x,acc -> find_free_vars_exp(acc,x) end)
+
+    {op, _info, args} when op in [ :<=, :<, :>, :>=, :&&, :||, :!,:!=,:==] ->
+      Enum.reduce(args,map, fn x,acc -> find_free_vars_exp(acc,x) end)
+    {var,_info, nil} when is_atom(var) ->
+      {bound,free} = map
+      if MapSet.member?(bound,var) do
+        map
+      else
+        {bound, MapSet.put(free,var)}
+      end
+    {_fun,_info, args} ->
+      Enum.reduce(args,map, fn x,acc -> find_free_vars_exp(acc,x) end)
+      #IO.inspect "Aqui2"
+     # IO.inspect args
+     # raise "function: #{inspect fun}"
+    # {args,funs} = map
+     #if MapSet.member?(args,fun) do
+     #  map
+     #else
+      #  {args,MapSet.put(funs,fun)}
+    # end
+    float when  is_float(float) -> map
+    int   when  is_integer(int) -> map
+    string when is_binary(string)  -> map
+  end
+
+end
+
+####################################################
+############### adds extra parameteres when calling a closure
+#### Takes a map (closure name -> extra para) and the ast,  and returns a new ast
+########################
+def add_extra_closure_args(map,{:defk, i1,[header, [body]]}) do
+  nbody = add_extra_closure_args__body(map,body)
+  {:defk, i1,[header, [nbody]]}
+end
+
+
+def add_extra_closure_args__body(map,body) do
+
+
+ case body do
+
+     {:__block__, _, _code} ->
+       add_extra_closure_args__block(map,body)
+     {:do, {:__block__,pos, code}} ->
+       {:do, add_extra_closure_args__block(map, {:__block__, pos,code}) }
+     {:do, exp} ->
+       {:do, add_extra_closure_args__command(map,exp)}
+     {_,_,_} ->
+       add_extra_closure_args__command(map,body)
+  end
+
+
+end
+defp add_extra_closure_args__block(map,{:__block__, info, code}) do
+ {:__block__, info,
+     Enum.map(code,  fn com -> add_extra_closure_args__command(map,com) end)
+ }
+end
+
+defp add_extra_closure_args__command(map,code) do
+   case code do
+       {:for,i,[param,[body]]} ->
+         {:for,i,[param,[add_extra_closure_args__body(map,body)]]}
+       {:do_while, i, [[doblock]]} ->
+         {:do_while, i, [[add_extra_closure_args__body(map,doblock)]]}
+       {:do_while_test, i, [exp]} ->
+         {:do_while_test, i, [add_extra_closure_args__exp(map,exp)]}
+       {:while, i, [bexp,[body]]} ->
+         {:while, i, [add_extra_closure_args__exp(map,bexp),[add_extra_closure_args__body(map,body)]]}
+       # CRIAÇÃO DE NOVOS VETORES
+       {{:., i1, [Access, :get]}, i2, [arg1,arg2]} ->
+         {{:., i1, [Access, :get]}, i2, [add_extra_closure_args__exp(map,arg1),add_extra_closure_args__exp(map,arg2)]}
+       {:__shared__, i1, [{{:., i2, [Access, :get]}, i3, [arg1,arg2]}]} ->
+         {:__shared__,i1 , [{{:., i2, [Access, :get]}, i3, [add_extra_closure_args__exp(map,arg1),add_extra_closure_args__exp(map,arg2)]}]}
+
+       # assignment
+       {:=, i1, [{{:., i2, [Access, :get]}, i3, [{array,a1,a2},acc_exp]}, exp]} ->
+         {:=, i1, [{{:., i2, [Access, :get]}, i3, [{array,a1,a2},add_extra_closure_args__exp(map,acc_exp)]}, add_extra_closure_args__exp(map,exp)]}
+       {:=, i, [var, exp]} ->
+         {:=, i, [var, add_extra_closure_args__exp(map,exp)]}
+       {:if, i, if_com} ->
+         {:if, i, add_extra_closure_args__if(map,if_com)}
+       {:var, i1 , [{var,i2,[{:=, i3, [{type,ii,nil}, exp]}]}]} ->
+         {:var, i1 , [{var,i2,[{:=, i3, [{type,ii,nil}, add_extra_closure_args__exp(map,exp)]}]}]}
+       {:var, i1 , [{var,i2,[{:=, i3, [type, exp]}]}]} ->
+         {:var, i1 , [{var,i2,[{:=, i3, [type, add_extra_closure_args__exp(map,exp)]}]}]}
+       {:var, i1 , [{var,i2,[{type,i3,t}]}]} ->
+         {:var, i1 , [{var,i2,[{type,i3,t}]}]}
+       {:var, i1 , [{var,i2,[type]}]} ->
+         {:var, i1 , [{var,i2,[type]}]}
+       {:type, i1 , [{var,i2,[{type,i3,t}]}]} ->
+         {:type, i1 , [{var,i2,[{type,i3,t}]}]}
+       {:type, i1 , [{var,i2,[type]}]} ->
+         {:type, i1 , [{var,i2,[type]}]}
+
+       {:return,i,[arg]} ->
+         {:return,i,[add_extra_closure_args__exp(map,arg)]}
+
+       {fun, info, args} when is_list(args)->
+         case map[fun] do
+            nil -> {fun, info, Enum.map(args,fn(exp) -> add_extra_closure_args__exp(map,exp) end)}
+            extra_args ->
+                   new_args = Enum.map(extra_args,fn p -> {p, [], nil} end)
+                   {fun, info, Enum.map(args,fn(exp) -> add_extra_closure_args__exp(map,exp) end) ++ new_args}
+          end
+       number when is_integer(number) or is_float(number) -> raise "Error: number is a command"
+       {str,i1 ,a } -> {str,i1 ,a }
+
+   end
+end
+
+defp add_extra_closure_args__if(map,[bexp, [do: then]]) do
+ [add_extra_closure_args__exp(map,bexp), [do: add_extra_closure_args__body(map,then)]]
+end
+defp add_extra_closure_args__if(map,[bexp, [do: thenbranch, else: elsebranch]]) do
+ [add_extra_closure_args__exp(map,bexp), [do: add_extra_closure_args__body(map,thenbranch), else: add_extra_closure_args__body(map,elsebranch)]]
+end
+
+
+defp add_extra_closure_args__exp(map,exp) do
+   case exp do
+     {{:., i1, [Access, :get]}, i2, [arg1,arg2]} ->
+         {{:., i1, [Access, :get]}, i2, [arg1, add_extra_closure_args__exp(map,arg2)]}
+     {{:., i1, [{struct, i2, nil}, field]},i3,[]} ->
+         {{:., i1, [{struct, i2, nil}, field]},i3,[]}
+     {{:., i1, [{:__aliases__, i2, [struct]}, field]}, i3, []} ->
+       {{:., i1, [{:__aliases__, i2, [struct]}, field]}, i3, []}
+     {op,info, args} when op in [:+, :-, :/, :*] ->
+       {op,info, Enum.map(args, fn e -> add_extra_closure_args__exp(map,e) end)}
+     {op, info, args} when op in [ :<=, :<, :>, :>=, :&&, :||, :!,:!=,:==] ->
+       {op,info, Enum.map(args, fn e -> add_extra_closure_args__exp(map,e) end)}
+     {var,info, nil} when is_atom(var) ->
+       {var, info, nil}
+     {fun,info, args} ->
+      case map[fun] do
+        nil -> {fun, info, Enum.map(args,fn(exp) -> add_extra_closure_args__exp(map,exp) end)}
+        extra_args ->
+            new_args = Enum.map(extra_args,fn p -> {p, [], nil} end)
+           {fun, info, Enum.map(args,fn(exp) -> add_extra_closure_args__exp(map,exp) end) ++ new_args}
+      end
+     float when  is_float(float) -> float
+     int   when  is_integer(int) -> int
+     string when is_binary(string)  -> string
+   end
+
+ end
+
+##################################
+############# END closure elimination
+###################################
+
+##################################################
+######################### OLD
+######
+##########################################
 def compile_and_load_kernel({:ker, _k, k_type,{ast, is_typed?, delta}},  l) do
 
  # get the formal parameters of the function
