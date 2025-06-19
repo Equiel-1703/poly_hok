@@ -104,7 +104,7 @@ defmodule PolyHok.TypeInference do
   end
   defp check_return(com) do
     IO.inspect "chegou "
-    IO.inpectt com
+    IO.inspect com
     case com do
           {:return,_,_} -> com
           {:if, info, [ exp,[do: block]]} -> {:if, info, [ exp,[do: check_return block]]}
