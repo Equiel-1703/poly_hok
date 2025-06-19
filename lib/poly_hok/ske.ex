@@ -20,7 +20,7 @@ PolyHok.defmodule Ske do
   include CAS_Poly
 
   def reduce(ref, initial, f) do
-    IO.inpsect "io"
+    IO.inspect "io"
      shape = PolyHok.get_shape_gnx(ref)
      type = PolyHok.get_type_gnx(ref)
      size = Tuple.product(shape)
