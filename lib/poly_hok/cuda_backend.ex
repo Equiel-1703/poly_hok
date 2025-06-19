@@ -518,8 +518,8 @@ defp is_exp?(exp) do
     {:!, _info, [_arg]} -> true
     {op, _inf, _args} when op in [ :&&, :||] -> true
     {var, _info, nil} when is_atom(var) -> true
-   # {:=,_,_} -> false
-   # {_fun, _, args} when is_list(args)-> true
+    {:=,_,_} -> false
+    {_fun, _, args} when is_list(args)-> true
     #{_fun, _, _noargs} ->
     float when  is_float(float) -> true
     int   when  is_integer(int) -> true
