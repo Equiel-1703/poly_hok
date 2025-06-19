@@ -528,6 +528,7 @@ defp is_exp?(exp) do
 
  end
 end
+#######################
 def check_fun(fun) do
   send(:types_server,{:check_fun, fun, self()})
   receive do
