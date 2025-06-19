@@ -467,7 +467,7 @@ def add_return(body) do
             _ ->  if is_exp?(exp) do
                     {:do, {:return,[],[exp]}}
                   else
-                    {:do, exp}
+                    {:do, check_return(exp)}
                   end
           end
       {_,_,_} ->  if (is_exp?(body)) do
@@ -494,6 +494,18 @@ defp check_return([com]) do
 end
 defp check_return([h|t]) do
   [h|check_return t]
+end
+defp check_return(com) do
+  case com do
+        {:return,_,_} -> com
+        {:if, info, [ exp,[do: block]]} -> {:if, info, [ exp,[do: check_return block]]}
+        {:if, info, [ exp,[do: block, else: belse ]]} -> {:if, info, [ exp,[do: check_return(block), else: check_return(belse) ]]}
+            _ -> if is_exp?(com) do
+                    {:return,[],[com]}
+                else
+                  com
+                end
+  end
 end
 defp is_exp?(exp) do
   case exp do
