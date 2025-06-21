@@ -9,6 +9,18 @@ PolyHok.defmodule Comp do
                                 PolyHok.clo (fn (unquote(var1)) -> (unquote body) end))
       
     end
+    def find_return_type_closure({:closure,name,ast,free,args}) do
+      types_free = JIT.infer_types_actual_parameters(free)
+      {:fn, _, [{:->, _ , [para,body]} = ast
+      extra_size = length(para) - length(free)
+      extra_types = replicate(extra_size,:none)
+      types = extra_types ++ types_free
+      delta=JIT.gen_delta_from_type({:closure,name,ast,free,args}, {:none,types})
+      delta=JIT.infer_types({:closure,name,ast,free,args},delta)
+      delta[:return]
+    end
+    defp replicate(0,_x), do: []
+    defp replicate(n,v), do: [ v | replicate(n-1,v) ]
     def map(input, f) do
         shape = PolyHok.get_shape(input)
         type = PolyHok.get_type(input)
@@ -33,7 +45,9 @@ PolyHok.defmodule Comp do
       end
       def map_coord(input, size,f) do
         shape = PolyHok.get_shape(input)
-        type = PolyHok.get_type(input)
+        #type = PolyHok.get_type(input)
+        type = find_return_type_closure(f)
+        IO.inspect type
         result_gpu = PolyHok.new_gnx(shape,type)
         
         threadsPerBlock = 128;
