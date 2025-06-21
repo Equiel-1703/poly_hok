@@ -53,7 +53,7 @@ PolyHok.defmodule Comp do
         end
       end
       def map_coord(size,f) do
-        shape = size
+        shape = {size}
         #type = PolyHok.get_type(input)
         type = find_return_type_closure(f)
         IO.inspect type
