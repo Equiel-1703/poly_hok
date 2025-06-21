@@ -4,8 +4,8 @@ PolyHok.defmodule Comp do
     defmacro gpu_for({:<-, _ ,[var,tensor]},do: b)  do
         quote do: Comp.map(unquote(tensor), PolyHok.clo (fn (unquote(var)) -> (unquote b) end))
     end
-    defmacro gpu_for({:<-,_, [var1, {:..,_, [_b1, e1]}]}, arr1, do: body) do
-      quote do: Comp.map_coord(  unquote(arr1), unquote(e1),
+    defmacro gpu_for({:<-,_, [var1, {:..,_, [_b1, e1]}]}, do: body) do
+      quote do: Comp.map_coord(  unquote(e1),
                                 PolyHok.clo (fn (unquote(var1)) -> (unquote body) end))
       
     end
@@ -51,8 +51,8 @@ PolyHok.defmodule Comp do
               a2[i] = f(a1[i])
         end
       end
-      def map_coord(input, size,f) do
-        shape = PolyHok.get_shape(input)
+      def map_coord(size,f) do
+        shape = size
         #type = PolyHok.get_type(input)
         type = find_return_type_closure(f)
         IO.inspect type
