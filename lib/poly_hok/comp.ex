@@ -10,6 +10,8 @@ PolyHok.defmodule Comp do
       
     end
     def find_return_type_closure({:closure,name,ast,free,args}) do
+      IO.inspect free
+      IO.inspect args
       types_free = JIT.infer_types_actual_parameters(free)
       {:fn, _, [{:->, _ , [para,_body]}] } = ast
       extra_size = length(para) - length(free)
