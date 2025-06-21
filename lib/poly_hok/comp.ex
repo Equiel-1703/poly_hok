@@ -10,7 +10,7 @@ PolyHok.defmodule Comp do
     defmacro gpu_for({:<-, _ ,[var,tensor]},do: b)  do
       quote do: Comp.map(unquote(tensor), PolyHok.clo (fn (unquote(var)) -> (unquote b) end))
   end
-    def find_return_type_closure({:closure,name,ast,free,args}) do
+    def find_return_type_closure({:closure,_name,ast,_free,args}) do
       types_free = JIT.infer_types_actual_parameters(args)
       {:fn, _, [{:->, _ , [para,_body]}] } = ast
       extra_size = length(para) - length(free)
