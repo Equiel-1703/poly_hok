@@ -9,3 +9,12 @@ v = 3
 (Comp.gpu_for n <- dev_vet,  do: v * n)
 |> PolyHok.get_gnx
 |> IO.inspect
+
+
+a = PolyHok.new_gnx(Nx.tensor(Enum.to_list(1..1000),type: {:s, 32}))
+b = PolyHok.new_gnx(Nx.tensor(Enum.to_list(1..1000),type: {:s, 32}))
+
+
+(PolyHok.gpu_for i <- 0..size, a, do:  2 * a[i] + b[i])
+|> PolyHok.get_gnx
+|> IO.inspect
