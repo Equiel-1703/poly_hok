@@ -17,7 +17,15 @@ PolyHok.defmodule Comp do
       types = extra_types ++ types_free
       delta=JIT.gen_delta_from_type(ast, {:none,types})
       delta=JIT.infer_types(ast,delta)
-      delta[:return]
+      r_type = delta[:return]
+      case r_type do
+        :int -> {:s,32}
+        :float -> {:f,32}
+        :double -> {:f,64}
+        x -> raise "Expression in comprehension has type #{x} which is not suported."
+      end
+      
+     
     end
     defp replicate(0,_x), do: []
     defp replicate(n,v), do: [ v | replicate(n-1,v) ]
