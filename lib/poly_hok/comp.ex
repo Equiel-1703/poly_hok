@@ -2,7 +2,7 @@ require PolyHok
 
 PolyHok.defmodule Comp do
     defmacro gpu_for({:<-, _ ,[var,tensor]},do: b)  do
-        quote do: Comp.map(unquote(tensor), PolyHok.phok (fn (unquote(var)) -> (unquote b) end))
+        quote do: Comp.map(unquote(tensor), PolyHok.clo (fn (unquote(var)) -> (unquote b) end))
     end
     def map(input, f) do
         shape = PolyHok.get_shape(input)
