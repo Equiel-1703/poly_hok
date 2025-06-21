@@ -2,35 +2,6 @@ require PolyHok
 
 PolyHok.defmodule NBodies do
 
-  defd gpu_nBodies(p,c,n) do
-    softening = 0.000000001
-    dt = 0.01
-    fx = 0.0
-    fy = 0.0
-    fz = 0.0
-    for j in range(0,n) do
-        dx = c[6*j] - p[0];
-        dy = c[6*j+1] - p[1];
-        dz = c[6*j+2] - p[2];
-        distSqr = dx*dx + dy*dy + dz*dz + softening;
-        invDist = 1.0/sqrt(distSqr);
-        invDist3  = invDist * invDist * invDist;
-
-        fx = fx + dx * invDist3;
-        fy = fy + dy * invDist3;
-        fz = fz + dz * invDist3;
-      end
-  p[3] = p[3]+ dt*fx;
-  p[4] = p[4]+ dt*fy;
-  p[5] = p[5]+ dt*fz;
-
-  end
-  defd gpu_integrate(p, dt, n) do
-      p[0] = p[0] + p[3]*dt;
-      p[1] = p[1] + p[4]*dt;
-      p[2] = p[2] + p[5]*dt;
-
-  end
   defk map_step_no_resp_kernel(d_array,  step, size,f) do
 
 
@@ -116,14 +87,3 @@ _gpu_resp = d_buf
 
 IO.puts "PolyHok\t#{user_value}\t#{System.convert_time_unit(next-prev,:native,:millisecond)}"
 
-#IO.inspect gpu_resp
-
-#prev = System.monotonic_time()
-#cpu_resp = NBodies.nbodies(nBodies-1,h_buf,dt,softening,nBodies-1)
-#cpu_resp = NBodies.cpu_integrate(nBodies-1,cpu_resp,dt)
-#next = System.monotonic_time()
-#IO.puts "Elixir\t#{user_value}\t#{System.convert_time_unit(next-prev,:native,:millisecond)}"
-
-#IO.inspect cpu_resp
-
-#NBodies.check_equality(nBodies,cpu_resp,gpu_resp)
