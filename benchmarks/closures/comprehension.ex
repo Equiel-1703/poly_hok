@@ -14,6 +14,7 @@ v = 3
 a = PolyHok.new_gnx(Nx.tensor(Enum.to_list(1..1000),type: {:s, 32}))
 b = PolyHok.new_gnx(Nx.tensor(Enum.to_list(1..1000),type: {:s, 32}))
 
+size = 1000
 
 (Comp.gpu_for i <- 0..size, a, do:  2 * a[i] + b[i])
 |> PolyHok.get_gnx
