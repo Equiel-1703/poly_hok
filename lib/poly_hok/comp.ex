@@ -1,14 +1,15 @@
 require PolyHok
 
 PolyHok.defmodule Comp do
-    defmacro gpu_for({:<-, _ ,[var,tensor]},do: b)  do
-        quote do: Comp.map(unquote(tensor), PolyHok.clo (fn (unquote(var)) -> (unquote b) end))
-    end
+    
     defmacro gpu_for({:<-,_, [var1, {:..,_, [_b1, e1]}]}, do: body) do
       quote do: Comp.map_coord(  unquote(e1),
                                 PolyHok.clo (fn (unquote(var1)) -> (unquote body) end))
       
     end
+    defmacro gpu_for({:<-, _ ,[var,tensor]},do: b)  do
+      quote do: Comp.map(unquote(tensor), PolyHok.clo (fn (unquote(var)) -> (unquote b) end))
+  end
     def find_return_type_closure({:closure,name,ast,free,args}) do
       types_free = JIT.infer_types_actual_parameters(args)
       {:fn, _, [{:->, _ , [para,_body]}] } = ast
