@@ -15,7 +15,7 @@ PolyHok.defmodule Comp do
       extra_size = length(para) - length(free)
       extra_types = replicate(extra_size,:none)
       types = extra_types ++ types_free
-      delta=JIT.gen_delta_from_type({:closure,name,ast,free,args}, {:none,types})
+      delta=JIT.gen_delta_from_type(ast, {:none,types})
       delta=JIT.infer_types({:closure,name,ast,free,args},delta)
       delta[:return]
     end
