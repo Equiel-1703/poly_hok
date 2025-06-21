@@ -6,7 +6,7 @@ PolyHok.defmodule Comp do
     end
     defmacro gpu_for({:<-,_, [var1, {:..,_, [_b1, e1]}]}, arr1, do: body) do
       quote do: Comp.map_coord(  unquote(arr1), unquote(e1),
-                                PolyHok.phok (fn (unquote(var1)) -> (unquote body) end))
+                                PolyHok.clo (fn (unquote(var1)) -> (unquote body) end))
       
     end
     def map(input, f) do
