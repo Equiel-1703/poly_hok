@@ -129,10 +129,10 @@ end
               end
 
               if (not coord && return) do
-                map({:nx, type, shape, name , ref}, func)
+                #map({:nx, type, shape, name , ref}, func)
               end
      :two ->  if (coord && not return) do
-                    map_coord_2D_no_resp({:nx, type, shape, name , ref}, par1,  func)
+                    map_coord_2D_no_resp({:nx, type, shape, name , ref},  func)
               end
 
 
