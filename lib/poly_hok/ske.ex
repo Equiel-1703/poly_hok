@@ -86,7 +86,6 @@ PolyHok.defmodule Ske do
   end
 
   @defaults %{coord: false, return: true, dim: :one}
-  def map(a,b,c,options \\[])
   def map({:nx, type, shape, name , ref}, func, [par1,par2], options )do
     %{coord: coord, return: return, dim: dim} = Enum.into(options, @defaults)
   case dim do
@@ -121,7 +120,7 @@ end
 
   end
   end
-  def map({:nx, type, shape, name , ref}, func, [],options )do
+  def map({:nx, type, shape, name , ref}, func, options )do
     %{coord: coord, return: return, dim: dim} = Enum.into(options, @defaults)
   case dim do
     :one ->   if (not coord && not return )do
@@ -182,18 +181,7 @@ end
 
       result_gpu
   end
-  defk map_coord_2D_1_para_no_resp_kernel(d_array,  step, par1,sizex,sizey,f) do
-
-    x = threadIdx.x + blockIdx.x * blockDim.x
-    y = threadIdx.y + blockIdx.y * blockDim.y
-    offset = x + y * blockDim.x * gridDim.x
-
-     id  = step * offset
-    #f(id,id)
-    if (offset < (sizex*sizey)) do
-      f(d_array+id,par1,x,y)
-    end
-  end
+  
   defk map_coord_2D_no_resp_kernel(d_array,  step, par1,sizex,sizey,f) do
 
     x = threadIdx.x + blockIdx.x * blockDim.x
@@ -206,6 +194,35 @@ end
       f(d_array+id,x,y)
     end
   end
+  defk map_coord_2D_1_para_no_resp_kernel(d_array,  step, par1,sizex,sizey,f) do
+
+    x = threadIdx.x + blockIdx.x * blockDim.x
+    y = threadIdx.y + blockIdx.y * blockDim.y
+    offset = x + y * blockDim.x * gridDim.x
+
+     id  = step * offset
+    #f(id,id)
+    if (offset < (sizex*sizey)) do
+      f(d_array+id,par1,x,y)
+    end
+  end
+  def map_coord_2D_no_resp(d_array, f) do
+
+    {sizex,sizey,step} =  case PolyHok.get_shape_gnx(d_array) do
+                             {l,c} -> {l,c,1}
+                             {l,c,step} -> {l,c,step}
+                             x -> raise "Invalid shape for a 2D map: #{inspect x}!"
+                           end
+ 
+     #IO.inspect {sizex,sizey,step}
+     block_size = 16
+     grid_rows = trunc ((sizex + block_size - 1) / block_size)
+     grid_cols = trunc ((sizey + block_size - 1) / block_size)
+ 
+ 
+     PolyHok.spawn(&Ske.map_coord_2D_no_resp_kernel/6,{grid_cols,grid_rows,1},{block_size,block_size,1},[d_array,step,sizex,sizey,f])
+       d_array
+   end
   def map_coord_2D_1_para_no_resp(d_array, par1, f) do
 
    {sizex,sizey,step} =  case PolyHok.get_shape_gnx(d_array) do
