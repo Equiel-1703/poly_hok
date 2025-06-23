@@ -121,6 +121,23 @@ end
 
   end
   end
+  def map({:nx, type, shape, name , ref}, func, options )do
+    %{coord: coord, return: return, dim: dim} = Enum.into(options, @defaults)
+  case dim do
+    :one ->   if (not coord && not return )do
+                   # map_1_para_no_resp({:nx, type, shape, name , ref},  par1, func)
+              end
+
+              if (not coord && return) do
+                map({:nx, type, shape, name , ref}, func)
+              end
+     :two ->  if (coord && not return) do
+                    map_coord_2D_no_resp({:nx, type, shape, name , ref}, par1,  func)
+              end
+
+
+  end
+  end
   def map({:nx, type, shape, name, ref}, {:nx, type2, shape2, name2, ref2}, func, options) do
     %{coord: coord, return: return, dim: dim} = Enum.into(options, @defaults)
 
@@ -175,6 +192,18 @@ end
     #f(id,id)
     if (offset < (sizex*sizey)) do
       f(d_array+id,par1,x,y)
+    end
+  end
+  defk map_coord_2D_no_resp_kernel(d_array,  step, par1,sizex,sizey,f) do
+
+    x = threadIdx.x + blockIdx.x * blockDim.x
+    y = threadIdx.y + blockIdx.y * blockDim.y
+    offset = x + y * blockDim.x * gridDim.x
+
+     id  = step * offset
+    #f(id,id)
+    if (offset < (sizex*sizey)) do
+      f(d_array+id,x,y)
     end
   end
   def map_coord_2D_1_para_no_resp(d_array, par1, f) do
