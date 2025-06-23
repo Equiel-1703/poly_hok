@@ -91,7 +91,7 @@ end
         col = blockIdx.x * blockDim.x + threadIdx.x
       
         if(col < size && row < size) do
-          resp[row * size + col] = f(arr1,arr2,par,row,col)
+          resp[row * size + col] = f(row,col)
         end
       end
       def comp2xy2D1p(size1,size2,f) do
