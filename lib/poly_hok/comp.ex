@@ -10,6 +10,19 @@ PolyHok.defmodule Comp do
     defmacro gpu_for({:<-, _ ,[var,tensor]},do: b)  do
       quote do: Comp.map(unquote(tensor), PolyHok.clo (fn (unquote(var)) -> (unquote b) end))
   end
+  defmacro gpufor({:<-,_, [var1, {:..,_, [_b1, e1]}]}, {:<-,_, [var2, {:..,_, [_b2, e2]}]}, do: body) do
+
+    #IO.inspect "Aqui"
+    r=      quote do: Comp.comp2xy2D1p(unquote(arr1), unquote(arr2), unquote(par3), unquote(e1), unquote(e2),
+                                       PolyHok.clo (fn (unquote(arr1),
+                                                    unquote(arr2),
+                                                    unquote(par3),
+                                                    unquote(var1),
+                                                    unquote(var2)) -> (unquote body) end))
+    #IO.inspect r
+    #raise "hell"
+    r
+end
     def find_return_type_closure({:closure,_name,ast,_free,args}) do
       types_free = JIT.infer_types_actual_parameters(args)
       {:fn, _, [{:->, _ , [para,_body]}] } = ast
@@ -76,4 +89,29 @@ PolyHok.defmodule Comp do
               a1[i] = f(i)
         end
       end
+      defk map2xy2D_kernel(resp,size,size,f) do
+        row  = blockIdx.y * blockDim.y + threadIdx.y
+        col = blockIdx.x * blockDim.x + threadIdx.x
+      
+        if(col < size && row < size) do
+          resp[row * size + col] = f(arr1,arr2,par,row,col)
+        end
+      end
+      def comp2xy2D1p(size1,size2,f) do
+          size = size1
+          type = find_return_type_closure(f)
+          result_gpu = PolyHok.new_gnx(size1,size2,type)
+          arr1_gpu = PolyHok.new_gnx(arr1)
+          arr2_gpu = PolyHok.new_gnx(arr2)
+      
+          block_size = 16
+         grid_rows = trunc ((size + block_size - 1) / block_size)
+        grid_cols = trunc ((size + block_size - 1) / block_size)
+      
+          PolyHok.spawn(&MM.map2xy2D_kernel/6,{grid_cols,grid_rows,1},{block_size,block_size,1},[result_gpu,size,f])
+      
+          r_gpu = PolyHok.get_gnx(result_gpu)
+          r_gpu
+      end
+      
 end
