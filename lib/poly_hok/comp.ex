@@ -10,7 +10,7 @@ PolyHok.defmodule Comp do
     defmacro gpu_for({:<-, _ ,[var,tensor]},do: b)  do
       quote do: Comp.map(unquote(tensor), PolyHok.clo (fn (unquote(var)) -> (unquote b) end))
   end
-  defmacro gpufor({:<-,_, [var1, {:..,_, [_b1, e1]}]}, {:<-,_, [var2, {:..,_, [_b2, e2]}]}, do: body) do
+  defmacro gpu_for({:<-,_, [var1, {:..,_, [_b1, e1]}]}, {:<-,_, [var2, {:..,_, [_b2, e2]}]}, do: body) do
 
     #IO.inspect "Aqui"
     r=      quote do: Comp.comp2xy2D1p(unquote(e1), unquote(e2),

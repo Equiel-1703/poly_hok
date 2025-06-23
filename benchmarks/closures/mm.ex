@@ -16,7 +16,7 @@ prev = System.monotonic_time()
 
 
 
-result = PolyHok.gpufor x <- 0..m, y <- 0..m, do
+result = PolyHok.gpu_for x <- 0..m, y <- 0..m do
             sum = 0
             for i in range(0,m,1) do
                   sum = sum + mat1[x * m + i] * mat2[i * m + y]
