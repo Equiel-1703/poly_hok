@@ -98,9 +98,7 @@ end
           size = size1
           type = find_return_type_closure(f)
           result_gpu = PolyHok.new_gnx(size1,size2,type)
-          arr1_gpu = PolyHok.new_gnx(arr1)
-          arr2_gpu = PolyHok.new_gnx(arr2)
-      
+          
           block_size = 16
          grid_rows = trunc ((size + block_size - 1) / block_size)
         grid_cols = trunc ((size + block_size - 1) / block_size)
