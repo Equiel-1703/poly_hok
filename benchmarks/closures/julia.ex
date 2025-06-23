@@ -63,7 +63,7 @@ end
 
 
 image = result_gpu
-  |> Ske.map(fun, return: false, dim: :two, coord: true)
+  |> Ske.map(fun, [], return: false, dim: :two, coord: true)
   |> PolyHok.get_gnx
 
 next = System.monotonic_time()
