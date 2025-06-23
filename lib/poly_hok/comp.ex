@@ -103,7 +103,7 @@ end
          grid_rows = trunc ((size + block_size - 1) / block_size)
         grid_cols = trunc ((size + block_size - 1) / block_size)
       
-          PolyHok.spawn(&MM.map2xy2D_kernel/3,{grid_cols,grid_rows,1},{block_size,block_size,1},[result_gpu,size,f])
+          PolyHok.spawn(&Comp.map2xy2D_kernel/3,{grid_cols,grid_rows,1},{block_size,block_size,1},[result_gpu,size,f])
       
           r_gpu = PolyHok.get_gnx(result_gpu)
           r_gpu
