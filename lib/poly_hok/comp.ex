@@ -86,7 +86,7 @@ end
               a1[i] = f(i)
         end
       end
-      defk map2xy2D_kernel(resp,size,size,f) do
+      defk map2xy2D_kernel(resp,size,f) do
         row  = blockIdx.y * blockDim.y + threadIdx.y
         col = blockIdx.x * blockDim.x + threadIdx.x
       
