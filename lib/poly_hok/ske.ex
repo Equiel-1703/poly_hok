@@ -87,7 +87,6 @@ PolyHok.defmodule Ske do
 
   @defaults %{coord: false, return: true, dim: :one}
   def map(a,b,c,options \\[])
-  def map(a,b,options \\[])
   def map({:nx, type, shape, name , ref}, func, [par1,par2], options )do
     %{coord: coord, return: return, dim: dim} = Enum.into(options, @defaults)
   case dim do
@@ -122,7 +121,7 @@ end
 
   end
   end
-  def map({:nx, type, shape, name , ref}, func, options )do
+  def map({:nx, type, shape, name , ref}, func, [],options )do
     %{coord: coord, return: return, dim: dim} = Enum.into(options, @defaults)
   case dim do
     :one ->   if (not coord && not return )do
