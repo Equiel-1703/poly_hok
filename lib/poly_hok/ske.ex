@@ -182,7 +182,7 @@ end
       result_gpu
   end
   
-  defk map_coord_2D_no_resp_kernel(d_array,  step, par1,sizex,sizey,f) do
+  defk map_coord_2D_no_resp_kernel(d_array,  step,sizex,sizey,f) do
 
     x = threadIdx.x + blockIdx.x * blockDim.x
     y = threadIdx.y + blockIdx.y * blockDim.y
