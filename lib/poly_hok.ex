@@ -9,6 +9,7 @@ defmodule PolyHok do
     # IO.inspect "body: #{inspect body}"
     #raise "hell"
      body =  PolyHok.CudaBackend.add_return(body)
+     funs = find_functions({:fn, aa, [{:->, bb , [para,body]}] })
      name = "anon_" <> PolyHok.CudaBackend.gen_lambda_name()
 
      free =  JIT.find_free_vars({:fn, aa, [{:->, bb , [para,body]}] })
@@ -19,7 +20,12 @@ defmodule PolyHok do
      function = {:fn, aa, [{:->, bb , [para ++ extra,body]}] }
 
     # IO.inspect list
-     resp =  quote(do: {:closure , unquote(name),unquote(Macro.escape function), unquote(free), unquote(extra)})
+     resp =  quote(do: {:closure, 
+                        unquote(name),
+                        {unquote(Macro.escape function),
+                        unquote(funs)}, 
+                        unquote(free), 
+                        unquote(extra)})
    #  resp =  quote(do: {:anon , unquote(name),unquote({:fn, aa, [{:->, bb , [para,body]}] })})
      resp
    end
