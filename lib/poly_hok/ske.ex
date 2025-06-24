@@ -220,7 +220,7 @@ end
      grid_cols = trunc ((sizey + block_size - 1) / block_size)
  
  
-     PolyHok.spawn(&Ske.map_coord_2D_no_resp_kernel/6,{grid_cols,grid_rows,1},{block_size,block_size,1},[d_array,step,sizex,sizey,f])
+     PolyHok.spawn(&Ske.map_coord_2D_no_resp_kernel/5,{grid_cols,grid_rows,1},{block_size,block_size,1},[d_array,step,sizex,sizey,f])
        d_array
    end
   def map_coord_2D_1_para_no_resp(d_array, par1, f) do
