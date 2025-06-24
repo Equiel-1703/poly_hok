@@ -9,7 +9,7 @@ defmodule PolyHok do
     # IO.inspect "body: #{inspect body}"
     #raise "hell"
      body =  PolyHok.CudaBackend.add_return(body)
-     funs = find_functions({:fn, aa, [{:->, bb , [para,body]}] })
+     funs = JIT.find_functions({:fn, aa, [{:->, bb , [para,body]}] })
      name = "anon_" <> PolyHok.CudaBackend.gen_lambda_name()
 
      free =  JIT.find_free_vars({:fn, aa, [{:->, bb , [para,body]}] })
