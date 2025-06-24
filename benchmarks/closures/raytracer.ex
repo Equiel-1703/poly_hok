@@ -114,7 +114,6 @@ defmodule Main do
         
         end
         
-        end
 
         Ske.map(ref_image, fun_ray, [], dim: :two, return: false, coord: true)
       
