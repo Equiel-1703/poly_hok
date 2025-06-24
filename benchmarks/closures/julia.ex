@@ -49,7 +49,6 @@ defmodule MyApp do
   
 
 use Ske
-#use Julia
 
 def main() do
 
