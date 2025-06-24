@@ -46,7 +46,7 @@ PolyHok.defmodule Julia do
 end
 
 use Ske
-use Julia
+require Julia
 
 [arg] = System.argv()
 m = String.to_integer(arg)
