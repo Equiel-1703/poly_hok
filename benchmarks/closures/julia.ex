@@ -45,8 +45,13 @@ PolyHok.defmodule Julia do
   
 end
 
+defmodule MyApp do
+  
+
 use Ske
 require Julia
+
+def main() do
 
 [arg] = System.argv()
 m = String.to_integer(arg)
@@ -79,3 +84,7 @@ next = System.monotonic_time()
 IO.puts "PolyHok\t#{dim}\t#{System.convert_time_unit(next-prev,:native,:millisecond)}"
 
 BMP.gen_bmp_int(~c"juliaske.bmp",dim,image)
+end
+end
+
+MyApp.main
