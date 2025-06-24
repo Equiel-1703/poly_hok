@@ -49,7 +49,7 @@ defmodule MyApp do
   
 
 use Ske
-require Julia
+use Julia
 
 def main() do
 
