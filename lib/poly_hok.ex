@@ -33,6 +33,7 @@ defmodule PolyHok do
   defmacro phok({:fn, aa, [{:->, bb , [para,body]}] }) do
    # IO.inspect "body: #{inspect body}"
     body =  PolyHok.CudaBackend.add_return(body)
+    funs = JIT.find_functions({:fn, aa, [{:->, bb , [para,body]}] })
     name = "anon_" <> PolyHok.CudaBackend.gen_lambda_name()
     function = {:fn, aa, [{:->, bb , [para,body]}] }
     resp =  quote(do: {:anon , unquote(name),unquote(Macro.escape function)})
