@@ -341,6 +341,17 @@ end
 ###################
 #### finds the names of functions called inside a device function or kernel
 ########################
+
+def find_functions({:fn, _aa, [{:->, _bb , [para,body]}]}) do
+  param_vars = para
+  |>  Enum.map(fn {p, _, _}-> p end)
+  |>  MapSet.new()
+
+  {_args,funs} = find_function_calls_body({param_vars,MapSet.new()},body)
+
+  MapSet.to_list(funs)
+end
+
 def find_functions({:defk, _i1,[header, [body]]}) do
   {_fname, _, para} = header
 
