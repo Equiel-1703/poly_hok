@@ -127,12 +127,12 @@ end
   #  IO.inspect header
     #IO.inspect body
     {:__aliases__, _, [module_name]} = header
-    IO.puts "ioooooooooooooooooooooooooooooooooo"
-    IO.inspect module_name
+    #IO.puts "ioooooooooooooooooooooooooooooooooo"
+    #IO.inspect module_name
     JIT.process_module(module_name,body)
 
     ast_new_module = PolyHok.CudaBackend.gen_new_module(header,body)
-    IO.inspect ast_new_module
+   # IO.inspect ast_new_module
     ast_new_module
 
 
@@ -908,7 +908,7 @@ def spawn(k,t,b,l) do
   args = process_args_no_fun(l)
   types_args = JIT.get_types_para(kast,inf_types)
   
-  IO.puts prog
+  #IO.puts prog
  
   jit_compile_and_launch_nif(Kernel.to_charlist(kernel_name),Kernel.to_charlist(prog),t,b, length(args), types_args,args)
 
