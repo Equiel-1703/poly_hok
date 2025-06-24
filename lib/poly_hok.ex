@@ -36,7 +36,7 @@ defmodule PolyHok do
     funs = JIT.find_functions({:fn, aa, [{:->, bb , [para,body]}] })
     name = "anon_" <> PolyHok.CudaBackend.gen_lambda_name()
     function = {:fn, aa, [{:->, bb , [para,body]}] }
-    resp =  quote(do: {:anon , unquote(name),unquote(Macro.escape function)})
+    resp =  quote(do: {:anon , unquote(name),{unquote(Macro.escape function),unquote(funs)}})
   #  resp =  quote(do: {:anon , unquote(name),unquote({:fn, aa, [{:->, bb , [para,body]}] })})
      resp
     #IO.inspect function
