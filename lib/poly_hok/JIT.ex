@@ -514,6 +514,7 @@ def closure_elimination(kast,l) do
   ###   adds extra arguments to the kernel call
   #############
   if (contains_closure(l))do
+   IO.puts "yooooooooooooooooooooooooo"
    map_extra_args =  JIT.gen_map_fun_name_to_extra_para(kast,l)
    #IO.inspect map_extra_args
    kast = JIT.add_extra_closure_args(map_extra_args,kast)
