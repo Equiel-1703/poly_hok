@@ -3,7 +3,7 @@ require PolyHok.CudaBackend
 defmodule JIT do
 
   def compile_function({:anon,fname,code,type}) do
-   #IO.puts "Compile function: #{fname}"
+   IO.puts "Compile function: #{fname}"
 
     delta = gen_delta_from_type(code,type)
    # IO.inspect "Delta: #{inspect delta}"
