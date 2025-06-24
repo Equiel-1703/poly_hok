@@ -3,7 +3,9 @@ require PolyHok.CudaBackend
 defmodule JIT do
 
   def compile_function({:anon,fname,code,type}) do
-   #IO.puts "Compile function: #{fname}"
+   {code,fun_graph} = code
+   
+    #IO.puts "Compile function: #{fname}"
 
     delta = gen_delta_from_type(code,type)
    # IO.inspect "Delta: #{inspect delta}"
@@ -29,7 +31,12 @@ defmodule JIT do
 
     function = "\n" <> k <> "\n\n"
 
-    [function]
+    other_funs = fun_graph
+                |> Enum.map(fn x -> {x, inf_types[x]} end)
+                |> Enum.filter(fn {_,i} -> i != nil end)
+    comp = Enum.map(other_funs,&JIT.compile_function/1)
+    comp = Enum.reduce(comp,[], fn x, y -> y++x end)
+    comp ++ [function]
 end
 def compile_function({name,type}) do
   #IO.puts "Compile function: #{name}"
