@@ -75,5 +75,6 @@ image = result_gpu
 next = System.monotonic_time()
 
 IO.puts "PolyHok\t#{dim}\t#{System.convert_time_unit(next-prev,:native,:millisecond)}"
+IO.puts "ok"
 
 BMP.gen_bmp_int("juliaske.bmp",dim,image)
