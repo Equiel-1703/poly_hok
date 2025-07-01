@@ -266,8 +266,8 @@ def process_module(module_name,body) do
   # initiate server that collects types and asts
   if (Process.whereis(:module_server) == nil) do
     pid = spawn_link(fn -> module_server(%{},%{}) end)
-    try
-      do: Process.register(pid, :module_server)
+    try do
+         Process.register(pid, :module_server)
     rescue
     _ -> :ok  
      end
