@@ -1,4 +1,4 @@
- git add lib/* lib/poly_hok/*
- git add benchmarks/*
- git commit -m "teste anonymous functions"
- git push origin main
+ git add lib/poly_hok.ex lib/poly_hok/JIT.ex benchmarks/closures/*
+ git commit -m "debuging closures"
+ git push origin teste
+
