@@ -22,7 +22,7 @@ res =
   arr
   |> PolyHok.new_gnx()
   |> Ske.map(PolyHok.phok fn x -> 
-              type float r1
+              type r1 float
               r1 = succ(x)
               mult(r1)
             end) 
