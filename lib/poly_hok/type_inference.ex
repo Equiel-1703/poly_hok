@@ -263,6 +263,7 @@ defmodule PolyHok.TypeInference do
                 map
                 |> Map.put(var,type)
           {:type, _ , [{var,_,[{type,_,_}]}]} ->
+            IO.puts "var: #{inspect var} type: #{inspect type}"
                   map
                   |> Map.put(var,type)
           {:type, _ , [{var,_,[type]}]} ->
