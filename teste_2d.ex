@@ -1,7 +1,7 @@
 require PolyHok
 
 PolyHok.defmodule Map2D do
-    defk map_2D_kernel(d_array, resp_array, step,f) do
+    defk map_2D_kernel(d_array, resp_array, step,sizex,sizey,f) do
 
         x = threadIdx.x + blockIdx.x * blockDim.x
         y = threadIdx.y + blockIdx.y * blockDim.y
@@ -30,7 +30,7 @@ PolyHok.defmodule Map2D do
          grid_cols = trunc ((sizey + block_size - 1) / block_size)
      
      
-         PolyHok.spawn(&Map2D.map_2D_kernel/4,{grid_cols,grid_rows,1},{block_size,block_size,1},[d_array,resp_array,step,f])
+         PolyHok.spawn(&Map2D.map_2D_kernel/4,{grid_cols,grid_rows,1},{block_size,block_size,1},[d_array,resp_array,step,sizex,sizey,f])
            resp_array
        end
 end
