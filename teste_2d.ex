@@ -42,6 +42,7 @@ host_array = Nx.tensor([[1,2,3,4,5,6,7,8,9,10],
                         [1,2,3,4,5,6,7,8,9,10],
                         [1,2,3,4,5,6,7,8,9,10]])
 
+IO.inspect host_array
 d_array = PolyHok.new_gnx(host_array)
 
 host_resp = d_array
