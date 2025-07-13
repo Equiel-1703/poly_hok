@@ -42,7 +42,7 @@ host_array = Nx.tensor([[1,2,3,4,5,6,7,8,9,10],
 
 d_array = PolyHok.new_gnx(host_array)
 
-host_resp = |> d_array
+host_resp = d_array
             |> Teste.map
             |> Map2D.map_2d(f x -> x+1)
             |> PolyHok.get_gnx
