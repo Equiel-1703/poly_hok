@@ -7,10 +7,10 @@ PolyHok.defmodule Map2D do
         y = threadIdx.y + blockIdx.y * blockDim.y
         offset = x + y * blockDim.x * gridDim.x
     
-         id  = step * offset
+         #id  = step * offset
         #f(id,id)
         if (offset < (sizex*sizey)) do
-          resp_array[id] = f(d_array+id)
+          resp_array[offset] = f(d_array[offset])
         end
       end
 
