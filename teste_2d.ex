@@ -10,7 +10,7 @@ PolyHok.defmodule Map2D do
          id  = step * offset
         #f(id,id)
         if (offset < (sizex*sizey)) do
-          resp_array[id] = f(d_array+id,x,y)
+          resp_array[id] = f(d_array+id)
         end
       end
 
