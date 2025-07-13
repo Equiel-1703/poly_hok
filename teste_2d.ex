@@ -30,7 +30,7 @@ PolyHok.defmodule Map2D do
          grid_cols = trunc ((sizey + block_size - 1) / block_size)
      
      
-         PolyHok.spawn(&Ske.map_2D_kernel/4,{grid_cols,grid_rows,1},{block_size,block_size,1},[d_array,resp_array,step,f])
+         PolyHok.spawn(&Map2D.map_2D_kernel/4,{grid_cols,grid_rows,1},{block_size,block_size,1},[d_array,resp_array,step,f])
            resp_array
        end
 end
@@ -45,7 +45,7 @@ host_array = Nx.tensor([[1,2,3,4,5,6,7,8,9,10],
 d_array = PolyHok.new_gnx(host_array)
 
 host_resp = d_array
-            |> Map2D.map_2d(PolyHok.phok fn f x -> x+1 end)
+            |> Map2D.map_2D(PolyHok.phok fn f x -> x+1 end)
             |> PolyHok.get_gnx
 
 IO.inspect host_resp
