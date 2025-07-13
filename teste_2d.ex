@@ -14,7 +14,7 @@ PolyHok.defmodule Map2D do
         end
       end
 
-      def map_2D(d_array, par1, f) do
+      def map_2D(d_array, f) do
         shape = PolyHok.get_shape_gnx(d_array)
         {sizex,sizey,step} =  case shape do
                                  {l,c} -> {l,c,1}
