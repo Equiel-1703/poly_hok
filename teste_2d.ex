@@ -44,7 +44,7 @@ d_array = PolyHok.new_gnx(host_array)
 
 host_resp = d_array
             |> Teste.map
-            |> Map2D.map_2d(PolyHok.phok f x -> x+1 end)
+            |> Map2D.map_2d(PolyHok.phok fn f x -> x+1 end)
             |> PolyHok.get_gnx
 
 IO.inspect host_array
