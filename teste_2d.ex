@@ -7,7 +7,7 @@ PolyHok.defmodule Map2D do
         y = threadIdx.y + blockIdx.y * blockDim.y
         offset = x + y * blockDim.x * gridDim.x
         
-        printf("posicao x %d\\n",x)
+        printf("posicao x=%d, y=%d\\n",x,y)
          #id  = step * offset
         #f(id,id)
         if (offset < (sizex*sizey)) do
