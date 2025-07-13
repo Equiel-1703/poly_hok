@@ -1,3 +1,5 @@
+require PolyHok
+
 PolyHok.defmodule Map2D do
     defk map_2D_kernel(d_array, resp_array, step,f) do
 
