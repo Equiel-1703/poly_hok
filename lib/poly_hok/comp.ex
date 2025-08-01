@@ -23,7 +23,7 @@ end
     def find_return_type_closure({:closure,_name,ast,_free,args}) do
       types_free = JIT.infer_types_actual_parameters(args)
       {ast,_funs} =ast
-      {:fn, _, [{:->, _ , [para,body]}] } = ast
+      {:fn, _, [{:->, _ , [para,_body]}] } = ast
       extra_size = length(para) - length(args)
       extra_types = replicate(extra_size,:none)
       types = extra_types ++ types_free

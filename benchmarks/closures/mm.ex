@@ -27,4 +27,4 @@ result = Comp.gpu_for x <- 0..m, y <- 0..m do
 next = System.monotonic_time()
 IO.puts "PolyHok\t#{m}\t#{System.convert_time_unit(next-prev,:native,:millisecond)} "
 
-IO.inspect result
+#IO.inspect result
