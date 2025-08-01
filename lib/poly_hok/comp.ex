@@ -26,7 +26,7 @@ end
       extra_size = length(para) - length(args)
       extra_types = replicate(extra_size,:none)
       types = extra_types ++ types_free
-      delta=JIT.gen_delta_from_type({:->, info2 , [para,body]}] }, {:none,types})
+      delta=JIT.gen_delta_from_type({:fn, info1, [{:->, info2 , [para,body]}] }, {:none,types})
       delta=JIT.infer_types(ast,delta)
       r_type = delta[:return]
       case r_type do
