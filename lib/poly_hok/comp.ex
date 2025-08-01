@@ -22,7 +22,7 @@ PolyHok.defmodule Comp do
 end
     def find_return_type_closure({:closure,_name,ast,_free,args}) do
       types_free = JIT.infer_types_actual_parameters(args)
-      {:fn, _, [{:->, _ , [para,_body]}] } = ast
+      {{:fn, _, [{:->, _ , [para,_body]}] }, _funs} = ast
       extra_size = length(para) - length(args)
       extra_types = replicate(extra_size,:none)
       types = extra_types ++ types_free
