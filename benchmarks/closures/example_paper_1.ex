@@ -4,7 +4,7 @@ use Ske
 
 dev_vet = PolyHok.new_gnx(Nx.tensor(Enum.to_list(1..1000), type: :s32))
 
-x = 1
+x = 10
 
 fun = PolyHok.clo fn y -> x + y end 
 
