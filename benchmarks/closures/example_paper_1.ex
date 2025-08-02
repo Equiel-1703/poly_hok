@@ -2,7 +2,7 @@ require PolyHok
 use Ske
 
 
-dev_vet = PolyHok.new_gnx(Nx.tensor(Enum.to_list(1..1000), type: :f32))
+dev_vet = PolyHok.new_gnx(Nx.tensor(Enum.to_list(1..1000), type: :s32))
 
 x = 10
 
