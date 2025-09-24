@@ -59,9 +59,10 @@ dim = m
 
 #values_per_pixel = 4
 
+prev = System.monotonic_time()
+
 result_gpu = PolyHok.new_gnx({dim,dim,4},{:s,32})
 
-prev = System.monotonic_time()
 
 fun = PolyHok.clo fn (ptr,x,y) -> 
 
