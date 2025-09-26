@@ -189,13 +189,17 @@ int main(int argc, char *argv[]){
     
     cudaMemcpy( s, temp_s, sizeof(Sphere) * SPHERES, cudaMemcpyHostToDevice );
 
-    //dim3    grids(dim/16,dim/16);
-    //dim3    threads(16,16);
-    // mapxy_2D_step_2_para_no_resp_kernel<<<grids,threads>>>(dev_image, 4,dim,((float*) s), dim);
-    dim3 blocksPerGrid(dim, dim, 1);
-    dim3 threadsPerBlock(1, 1, 1);
+  //  dim3    grids(dim/16,dim/16);
+  //  dim3    threads(16,16);
 
-    mapxy_2D_step_2_para_no_resp_kernel<<<blocksPerGrid,threadsPerBlock>>>(dev_image, 4,dim,((float*) s), dim);
+  //  mapxy_2D_step_2_para_no_resp_kernel<<<grids,threads>>>(dev_image, 4,dim,((float*) s), dim);
+
+    dim3    grids(dim,dim);
+ //   dim3    threads(16,16);
+
+     mapxy_2D_step_2_para_no_resp_kernel<<<grids,1>>>(dev_image, 4,dim,((float*) s), dim);
+
+
    // kernel<<<grids,threads>>>(dim, s, dev_image);
 
     cudaMemcpy( final_image, dev_image, dim * dim * sizeof(int) * 4,cudaMemcpyDeviceToHost );
