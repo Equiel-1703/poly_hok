@@ -9,6 +9,8 @@ m = String.to_integer(arg)
 mat1 = Nx.tensor(Enum.to_list(1..(m*m)), type: :f32)
 mat2 = Nx.tensor(Enum.to_list(1..(m*m)),  type: :f32)
 
+prev = System.monotonic_time()
+
 mat1 = PolyHok.new_gnx(Nx.reshape(mat1,{m,m}))
 mat2 = PolyHok.new_gnx(Nx.reshape(mat2,{m,m}))
 
