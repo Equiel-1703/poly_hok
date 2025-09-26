@@ -116,7 +116,7 @@ defmodule Main do
         
 
         Ske.map(ref_image, fun_ray, [], dim: :two, return: false, coord: true)
-      
+        IO.inspect "ok"
         image = PolyHok.get_gnx(ref_image)
 
         next = System.monotonic_time()
