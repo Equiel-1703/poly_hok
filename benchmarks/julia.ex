@@ -2,7 +2,7 @@ require PolyHok
 defmodule BMP do
   @on_load :load_nifs
   def load_nifs do
-      :erlang.load_nif('./priv/bmp_nifs', 0)
+      :erlang.load_nif(~c"./priv/bmp_nifs", 0)
   end
   def gen_bmp_int_nif(_string,_dim,_mat) do
       raise "gen_bmp_nif not implemented"
@@ -75,9 +75,9 @@ dim = m
 
 #values_per_pixel = 4
 
-result_gpu = PolyHok.new_gnx(dim*dim,4,{:s,32})
-
 prev = System.monotonic_time()
+
+result_gpu = PolyHok.new_gnx(dim*dim,4,{:s,32})
 
 _image = result_gpu
   |> Julia.mapgen2D_step_xy_1para_noret(dim,dim, &Julia.julia_function/4)
@@ -87,4 +87,4 @@ next = System.monotonic_time()
 
 IO.puts "PolyHok\t#{dim}\t#{System.convert_time_unit(next-prev,:native,:millisecond)}"
 
-#BMP.gen_bmp_int('juliaske.bmp',dim,image)
+#BMP.gen_bmp_int(~c"juliaske.bmp",dim,image)
