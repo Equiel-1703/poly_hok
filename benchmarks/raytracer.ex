@@ -181,7 +181,7 @@ defmodule Main do
         IO.puts "PolyHok\t#{width}\t#{System.convert_time_unit(next-prev,:native,:millisecond)} "
 
 
-        BMP.gen_bmp_int(~c"ray.bmp",width,image)
+        # BMP.gen_bmp_int(~c"ray.bmp",width,image)
 
         #image = Matrex.to_list(image)
 
