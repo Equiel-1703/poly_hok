@@ -1,6 +1,7 @@
 #!/bin/bash
 
 RUNS_PER_BENCHMARK=30 # CHANGE TO 30 LATER ----------------------------------------------------<<<
+USE_TEST_VALUES=false # Set to true to use smaller test values
 
 # Define directories for benchmarks
 BENCHMARKS_DIR="benchmarks"
@@ -27,6 +28,30 @@ run_CUDA_benchmark() {
     done
 }
 
+# This function will invoke the benchmark with the provided inputs
+# It will provide the test inputs if the flag USE_TEST_VALUES is true
+# 
+# CALL SIGNATURE:
+#       run_benchmark <benchmark_file> <title> <inputs> <test_inputs>
+run_benchmark() {
+    local benchmark_file=$1
+    local title=$2
+    local inputs=$3
+    local test_inputs=$4
+
+    # If we are using test values, "inputs" will have the test values instead
+    if [ "$USE_TEST_VALUES" = true ]; then
+        inputs="$test_inputs"
+    fi
+
+    echo -e "$title\n"
+
+    local val
+    for val in $inputs; do
+        run_CUDA_benchmark "$benchmark_file" "$val"
+    done
+    echo ""
+}
 
 # ------------------ Script Start ------------------
 echo -e "- CUDA Benchmarks Results -"
@@ -36,87 +61,59 @@ echo -e "Runs per benchmark: $RUNS_PER_BENCHMARK\n"
 echo ""  # Add a blank line for readability
 
 # ------------------ Dot Product Benchmark ------------------
-# INPUTS="1024 2048 4096" # Test values
-INPUTS="400000000 500000000 600000000" # CHANGE TO THIS LATER ----------------------------------------------------<<<
+BENCH_FILE="dot_product.cu"
+TITLE="Dot Product (DP) benchmark"
+INPUTS="400000000 500000000 600000000"
+TEST_INPUTS="1024 2048 4096"
 
-echo -e "Dot Product (DP) benchmark\n"
-
-BENCH="dot_product.cu"
-for INPUT in $INPUTS; do
-    run_CUDA_benchmark "$BENCH" "$INPUT"
-done
-echo ""
+run_benchmark "$BENCH_FILE" "$TITLE" "$INPUTS" "$TEST_INPUTS"
 
 # ------------------ Julia Benchmark ------------------
-# INPUTS="512 1024 2048" # Test values
-INPUTS="7168 9216 11264" # CHANGE TO THIS LATER ----------------------------------------------------<<<
+BENCH_FILE="julia.cu"
+TITLE="Julia (JL) benchmark"
+INPUTS="7168 9216 11264"
+TEST_INPUTS="512 1024 2048"
 
-echo -e "Julia (JL) benchmark\n"
-
-BENCH="julia.cu"
-for INPUT in $INPUTS; do
-    run_CUDA_benchmark "$BENCH" "$INPUT"
-done
-echo ""
+run_benchmark "$BENCH_FILE" "$TITLE" "$INPUTS" "$TEST_INPUTS"
 
 # ------------------ MM Benchmarks ------------------
-# INPUTS="128 256 512" # Test values
-INPUTS="5000 7000 9000" # CHANGE TO THIS LATER ----------------------------------------------------<<<
+BENCH_FILE="mm.cu"
+TITLE="Matrix Multiplication (MM) benchmark"
+INPUTS="5000 7000 9000"
+TEST_INPUTS="128 256 512"
 
-echo -e "Matrix Multiplication (MM) benchmark\n"
-
-BENCH="mm.cu"
-for INPUT in $INPUTS; do
-    run_CUDA_benchmark "$BENCH" "$INPUT"
-done
-echo ""
+run_benchmark "$BENCH_FILE" "$TITLE" "$INPUTS" "$TEST_INPUTS"
 
 # ------------------ NBody Benchmarks ------------------
-# INPUTS="128 256 512" # Test values
-INPUTS="100000 200000 400000" # CHANGE TO THIS LATER ----------------------------------------------------<<<
+BENCH_FILE="nbodies.cu"
+TITLE="nBodies (NB) benchmark"
+INPUTS="100000 200000 400000"
+TEST_INPUTS="128 256 512"
 
-echo -e "nBodies (NB) benchmark\n"
-
-BENCH="nbodies.cu"
-for INPUT in $INPUTS; do
-    run_CUDA_benchmark "$BENCH" "$INPUT"
-done
-echo ""
+run_benchmark "$BENCH_FILE" "$TITLE" "$INPUTS" "$TEST_INPUTS"
 
 # ------------------ Nearest Neighbor Benchmarks ------------------
-# INPUTS="1024 2048 4096" # Test values
-INPUTS="100000000 200000000 300000000" # CHANGE TO THIS LATER ----------------------------------------------------<<<
+BENCH_FILE="nearest_neighbor_double.cu"
+TITLE="Nearest Neighbor (NN) benchmark (double precision)"
+INPUTS="100000000 200000000 300000000"
+TEST_INPUTS="1024 2048 4096"
 
-echo -e "Nearest Neighbor (NN) benchmark\n"
-
-BENCH="nearest_neighbor_double.cu"
-for INPUT in $INPUTS; do
-    run_CUDA_benchmark "$BENCH" "$INPUT"
-done
-echo ""
+run_benchmark "$BENCH_FILE" "$TITLE" "$INPUTS" "$TEST_INPUTS"
 
 # ------------------ Raytracer Benchmarks ------------------
-# INPUTS="512 1024 2048" # Test values
-INPUTS="7168 9216 11264" # CHANGE TO THIS LATER ----------------------------------------------------<<<
+BENCH_FILE="raytracer.cu"
+TITLE="Raytracer (RT) benchmark"
+INPUTS="7168 9216 11264"
+TEST_INPUTS="512 1024 2048"
 
-echo -e "Raytracer (RT) benchmark\n"
-
-BENCH="raytracer.cu"
-for INPUT in $INPUTS; do
-    run_CUDA_benchmark "$BENCH" "$INPUT"
-done
-echo ""
+run_benchmark "$BENCH_FILE" "$TITLE" "$INPUTS" "$TEST_INPUTS"
 
 # ------------------ Saxpy Benchmarks ------------------
-# INPUTS="512 1024 2048" # Test values
-INPUTS="300000000 400000000 500000000" # CHANGE TO THIS LATER ----------------------------------------------------<<<
+BENCH_FILE="saxpy.cu"
+TITLE="Saxpy (SP) benchmark"
+INPUTS="300000000 400000000 500000000"
+TEST_INPUTS="512 1024 2048"
 
-echo -e "Saxpy (SP) benchmark\n"
-
-BENCH="saxpy.cu"
-for INPUT in $INPUTS; do
-    run_CUDA_benchmark "$BENCH" "$INPUT"
-done
-echo ""
+run_benchmark "$BENCH_FILE" "$TITLE" "$INPUTS" "$TEST_INPUTS"
 
 # ------------------ Script End ------------------
