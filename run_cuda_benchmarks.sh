@@ -24,7 +24,7 @@ run_CUDA_benchmark() {
     local i # Loop variable
     
     # Run the compiled CUDA benchmark
-    if ["$MEASURE_TRUE_TIME" = true]; then
+    if [ "$MEASURE_TRUE_TIME" = true ]; then
         for ((i=1; i<=RUNS_PER_BENCHMARK; i++)); do
             time "./$CUDA_BENCHMARKS_DIR/$output_name" $benchmark_input 2>&1
         done
