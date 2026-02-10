@@ -2,6 +2,7 @@
 
 RUNS_PER_BENCHMARK=30 # CHANGE TO 30 LATER ----------------------------------------------------<<<
 USE_TEST_VALUES=false # Set to true to use smaller test values
+MEASURE_TRUE_TIME=false # Set to true to measure the entire execution time of the benchmark with the "time" command
 
 # Define directories for benchmarks
 BENCHMARKS_DIR="benchmarks"
@@ -23,14 +24,20 @@ run_CUDA_benchmark() {
     local i # Loop variable
     
     # Run the compiled CUDA benchmark
-    for ((i=1; i<=RUNS_PER_BENCHMARK; i++)); do
-        "./$CUDA_BENCHMARKS_DIR/$output_name" $benchmark_input 2>&1
-    done
+    if ["$MEASURE_TRUE_TIME" = true]; then
+        for ((i=1; i<=RUNS_PER_BENCHMARK; i++)); do
+            time "./$CUDA_BENCHMARKS_DIR/$output_name" $benchmark_input 2>&1
+        done
+    else
+        for ((i=1; i<=RUNS_PER_BENCHMARK; i++)); do
+            "./$CUDA_BENCHMARKS_DIR/$output_name" $benchmark_input 2>&1
+        done
+    fi
 }
 
 # This function will invoke the benchmark with the provided inputs
 # It will provide the test inputs if the flag USE_TEST_VALUES is true
-# 
+#
 # CALL SIGNATURE:
 #       run_benchmark <benchmark_file> <title> <inputs> <test_inputs>
 run_benchmark() {
@@ -38,14 +45,14 @@ run_benchmark() {
     local title=$2
     local inputs=$3
     local test_inputs=$4
-
+    
     # If we are using test values, "inputs" will have the test values instead
     if [ "$USE_TEST_VALUES" = true ]; then
         inputs="$test_inputs"
     fi
-
+    
     echo -e "$title\n"
-
+    
     local val
     for val in $inputs; do
         run_CUDA_benchmark "$benchmark_file" "$val"
