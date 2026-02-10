@@ -78,7 +78,7 @@ run_benchmark "$BENCH_FILE" "$TITLE" "$INPUTS" "$TEST_INPUTS"
 # ------------------ Julia Benchmark ------------------
 BENCH_FILE="julia.cu"
 TITLE="Julia (JL) benchmark"
-INPUTS="10000 15000 20000"
+INPUTS="10000 17000 20000"
 TEST_INPUTS="512 1024 2048"
 
 run_benchmark "$BENCH_FILE" "$TITLE" "$INPUTS" "$TEST_INPUTS"
@@ -110,7 +110,7 @@ run_benchmark "$BENCH_FILE" "$TITLE" "$INPUTS" "$TEST_INPUTS"
 # ------------------ Raytracer Benchmarks ------------------
 BENCH_FILE="raytracer.cu"
 TITLE="Raytracer (RT) benchmark"
-INPUTS="10000 15000 20000"
+INPUTS="10000 17000 20000"
 TEST_INPUTS="512 1024 2048"
 
 run_benchmark "$BENCH_FILE" "$TITLE" "$INPUTS" "$TEST_INPUTS"
