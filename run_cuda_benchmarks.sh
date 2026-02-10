@@ -70,7 +70,7 @@ echo ""  # Add a blank line for readability
 # ------------------ Dot Product Benchmark ------------------
 BENCH_FILE="dot_product.cu"
 TITLE="Dot Product (DP) benchmark"
-INPUTS="400000000 500000000 600000000"
+INPUTS="800000000 900000000 1000000000"
 TEST_INPUTS="1024 2048 4096"
 
 run_benchmark "$BENCH_FILE" "$TITLE" "$INPUTS" "$TEST_INPUTS"
@@ -78,7 +78,7 @@ run_benchmark "$BENCH_FILE" "$TITLE" "$INPUTS" "$TEST_INPUTS"
 # ------------------ Julia Benchmark ------------------
 BENCH_FILE="julia.cu"
 TITLE="Julia (JL) benchmark"
-INPUTS="7168 9216 11264"
+INPUTS="10000 15000 20000"
 TEST_INPUTS="512 1024 2048"
 
 run_benchmark "$BENCH_FILE" "$TITLE" "$INPUTS" "$TEST_INPUTS"
@@ -86,23 +86,23 @@ run_benchmark "$BENCH_FILE" "$TITLE" "$INPUTS" "$TEST_INPUTS"
 # ------------------ MM Benchmarks ------------------
 BENCH_FILE="mm.cu"
 TITLE="Matrix Multiplication (MM) benchmark"
-INPUTS="5000 7000 9000"
+INPUTS="10000 15000 20000"
 TEST_INPUTS="128 256 512"
 
 run_benchmark "$BENCH_FILE" "$TITLE" "$INPUTS" "$TEST_INPUTS"
 
 # ------------------ NBody Benchmarks ------------------
-BENCH_FILE="nbodies.cu"
-TITLE="nBodies (NB) benchmark"
-INPUTS="100000 200000 400000"
-TEST_INPUTS="128 256 512"
+# BENCH_FILE="nbodies.cu"
+# TITLE="nBodies (NB) benchmark"
+# INPUTS="100000 200000 400000"
+# TEST_INPUTS="128 256 512"
 
-run_benchmark "$BENCH_FILE" "$TITLE" "$INPUTS" "$TEST_INPUTS"
+# run_benchmark "$BENCH_FILE" "$TITLE" "$INPUTS" "$TEST_INPUTS"
 
 # ------------------ Nearest Neighbor Benchmarks ------------------
 BENCH_FILE="nearest_neighbor_double.cu"
 TITLE="Nearest Neighbor (NN) benchmark (double precision)"
-INPUTS="100000000 200000000 300000000"
+INPUTS="300000000 400000000 500000000"
 TEST_INPUTS="1024 2048 4096"
 
 run_benchmark "$BENCH_FILE" "$TITLE" "$INPUTS" "$TEST_INPUTS"
@@ -110,17 +110,17 @@ run_benchmark "$BENCH_FILE" "$TITLE" "$INPUTS" "$TEST_INPUTS"
 # ------------------ Raytracer Benchmarks ------------------
 BENCH_FILE="raytracer.cu"
 TITLE="Raytracer (RT) benchmark"
-INPUTS="7168 9216 11264"
+INPUTS="10000 15000 20000"
 TEST_INPUTS="512 1024 2048"
 
 run_benchmark "$BENCH_FILE" "$TITLE" "$INPUTS" "$TEST_INPUTS"
 
 # ------------------ Saxpy Benchmarks ------------------
-BENCH_FILE="saxpy.cu"
-TITLE="Saxpy (SP) benchmark"
-INPUTS="300000000 400000000 500000000"
-TEST_INPUTS="512 1024 2048"
+# BENCH_FILE="saxpy.cu"
+# TITLE="Saxpy (SP) benchmark"
+# INPUTS="300000000 400000000 500000000"
+# TEST_INPUTS="512 1024 2048"
 
-run_benchmark "$BENCH_FILE" "$TITLE" "$INPUTS" "$TEST_INPUTS"
+# run_benchmark "$BENCH_FILE" "$TITLE" "$INPUTS" "$TEST_INPUTS"
 
 # ------------------ Script End ------------------
