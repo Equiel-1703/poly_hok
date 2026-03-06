@@ -4,7 +4,7 @@ defmodule PolyHok do
       :erlang.load_nif("./priv/gpu_nifs", 0)
       #IO.puts("ok")
   end
-  
+
   defmacro clo({:fn, aa, [{:->, bb , [para,body]}] }) do
     # IO.inspect "body: #{inspect body}"
     #raise "hell"
@@ -20,11 +20,11 @@ defmodule PolyHok do
      function = {:fn, aa, [{:->, bb , [para ++ extra,body]}] }
 
     # IO.inspect list
-     resp =  quote(do: {:closure, 
+     resp =  quote(do: {:closure,
                         unquote(name),
                         {unquote(Macro.escape function),
-                        unquote(funs)}, 
-                        unquote(free), 
+                        unquote(funs)},
+                        unquote(free),
                         unquote(extra)})
    #  resp =  quote(do: {:anon , unquote(name),unquote({:fn, aa, [{:->, bb , [para,body]}] })})
      resp
@@ -913,15 +913,13 @@ def spawn(k,t,b,l) do
 
   prog = Enum.reduce(prog,"", fn x, y -> y<>x end)
 
- 
+
   args = process_args_no_fun(l)
   types_args = JIT.get_types_para(kast,inf_types)
-  
-  #IO.puts prog
- 
+
+  IO.puts prog
+
   jit_compile_and_launch_nif(Kernel.to_charlist(kernel_name),Kernel.to_charlist(prog),t,b, length(args), types_args,args)
-
-
 end
 
 
