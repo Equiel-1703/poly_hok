@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <time.h>
 #include <stdint.h>
+
+#include <chrono>
+
 #define rnd(x) (x * rand() / RAND_MAX)
 #define INF 2e10f
 // asdf
@@ -195,11 +198,18 @@ int main(int argc, char *argv[])
     dim3 grids(dim, dim);
     //   dim3    threads(16,16);
 
+    auto start_chrono = std::chrono::steady_clock::now();
+
     mapxy_2D_step_2_para_no_resp_kernel<<<grids, 1>>>(dev_image, 4, dim, ((float *)s), dim);
+    cudaDeviceSynchronize();
+
+    auto end_chrono_kernel = std::chrono::steady_clock::now();
 
     // kernel<<<grids,threads>>>(dim, s, dev_image);
 
     cudaMemcpy(final_image, dev_image, (size_t)dim * dim * sizeof(int) * 4, cudaMemcpyDeviceToHost);
+
+    auto end_chrono_copy = std::chrono::steady_clock::now();
 
     cudaFree(dev_image);
     cudaFree(s);
@@ -208,7 +218,13 @@ int main(int argc, char *argv[])
     cudaEventSynchronize(stop);
     cudaEventElapsedTime(&time, start, stop);
 
+    double time_chrono_kernel = std::chrono::duration_cast<std::chrono::milliseconds>(end_chrono_kernel - start_chrono).count();
+    double time_chrono_copy = std::chrono::duration_cast<std::chrono::milliseconds>(end_chrono_copy - end_chrono_kernel).count();
+    
     printf("CUDA\t%d\t%3.1f\n", dim, time);
+    printf("Kernel Time: %3.1f ms\n", time_chrono_kernel);
+    printf("Copy Time: %3.1f ms\n", time_chrono_copy);
+
     // genBpm(dim,dim,final_image);
 
     free(temp_s);
