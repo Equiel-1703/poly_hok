@@ -714,13 +714,14 @@ end
               "(#{gen_exp a1} #{to_string(op)} #{gen_exp a2})"
             end
         # Support for bitwise operators
-        {op, _, args} when op in [:<<<, :>>>, :~>>, :&&&, :|||] ->
+        {op, _, args} when op in [:<<<, :>>>, :~>>, :&&&, :|||, :+++] ->
           str_op = case op do
             :<<< -> "<<"
             :>>> -> ">>"
             :~>> -> "%"
             :&&& -> "&"
             :||| -> "|"
+            :+++ -> "^"
           end
 
           case args do
