@@ -713,6 +713,20 @@ end
             [a1,a2] ->
               "(#{gen_exp a1} #{to_string(op)} #{gen_exp a2})"
             end
+        # Support for bitwise operators
+        {op, _, args} when op in [:<<<, :>>>, :~>>, :&&&, :|||] ->
+          str_op = case op do
+            :<<< -> "<<"
+            :>>> -> ">>"
+            :~>> -> "%"
+            :&&& -> "&"
+            :||| -> "|"
+          end
+
+          case args do
+            [a1,a2] ->
+              "(#{gen_exp a1} #{str_op} #{gen_exp a2})"
+          end
         {var, _, nil} when is_atom(var) -> to_string(var)
         {fun, _, args} ->
           #module = get_module_name()
