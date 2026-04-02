@@ -11,10 +11,10 @@ PolyHok.defmodule TestBitOp do
   end
 
   def map(a1,func) do
-    {l,c} = PolyHok.get_shape_gnx(a1)
+    {c} = PolyHok.get_shape_gnx(a1)
     type = PolyHok.get_type_gnx(a1)
-    size = l*c
-    result_gpu = PolyHok.new_gnx(l,c, type)
+    size = c
+    result_gpu = PolyHok.new_gnx({1,c}, type)
 
     threadsPerBlock = 32
     numberOfBlocks = div(size + threadsPerBlock - 1, threadsPerBlock)
