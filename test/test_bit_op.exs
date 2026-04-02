@@ -39,6 +39,6 @@ result_nx_1 = TestBitOp.map(array_gpu, PolyHok.phok fn (x) -> x <<< 1 end) |> Po
 result_nx_2 = TestBitOp.map(array_gpu, PolyHok.phok fn (x) -> x >>> 1 end) |> PolyHok.get_gnx
 result_nx_3 = TestBitOp.map(array_gpu, PolyHok.phok fn (x) -> x ~>> 1 end) |> PolyHok.get_gnx
 
-IO.inspect(result_nx, label: "Result of bitwise left shift (<<<)")
+IO.inspect(result_nx_1, label: "Result of bitwise left shift (<<<)")
 IO.inspect(result_nx_2, label: "Result of bitwise right shift (>>>)")
 IO.inspect(result_nx_3, label: "Result of modulo operation (~>>)")
